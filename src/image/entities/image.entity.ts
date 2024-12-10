@@ -10,19 +10,14 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Itinerary {
+export class Image {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({
-    type: 'int',
-  })
-  day: number;
-
-  @Column({
     type: 'text',
   })
-  description: string;
+  filename: string;
 
   @CreateDateColumn({
     name: 'created_at',
@@ -45,6 +40,6 @@ export class Itinerary {
   })
   deletedAt: Date;
 
-  @ManyToOne(() => Sport, (sport) => sport.itineraries, { nullable: true })
+  @ManyToOne(() => Sport, (sport) => sport.images, { nullable: true })
   sport: Sport;
 }

@@ -1,18 +1,19 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import * as Joi from 'joi';
-import { UsersModule } from './users/users.module';
-import { ItineraryModule } from './itinerary/itinerary.module';
-import { FilesModule } from './files/files.module';
-import { SportModule } from './sport/sport.module';
-import { HolidayModule } from './holiday/holiday.module';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
-import { LoggerModule } from 'nestjs-pino';
-import { HealthModule } from './health/health.module';
-import configuration from './config/configuration';
-import * as pino from 'pino';
 import { CoreModule } from '#/core/core.module';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import * as Joi from 'joi';
+import { LoggerModule } from 'nestjs-pino';
+import * as pino from 'pino';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import configuration from './config/configuration';
+import { HealthModule } from './health/health.module';
+import { HolidayModule } from './holiday/holiday.module';
+import { ItineraryModule } from './itinerary/itinerary.module';
+import { SportTypeModule } from './sport-type/sport-type.module';
+import { SportModule } from './sport/sport.module';
+import { UsersModule } from './users/users.module';
+import { ImageModule } from './image/image.module';
 
 @Module({
   imports: [
@@ -98,8 +99,9 @@ import { CoreModule } from '#/core/core.module';
     HealthModule,
     HolidayModule,
     SportModule,
-    FilesModule,
     ItineraryModule,
+    SportTypeModule,
+    ImageModule,
   ],
 })
 export class AppModule {}
