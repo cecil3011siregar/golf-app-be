@@ -6,14 +6,16 @@ import * as Joi from 'joi';
 import { LoggerModule } from 'nestjs-pino';
 import * as pino from 'pino';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { BenefitModule } from './benefit/benefit.module';
 import configuration from './config/configuration';
 import { HealthModule } from './health/health.module';
 import { HolidayModule } from './holiday/holiday.module';
+import { ImageModule } from './image/image.module';
 import { ItineraryModule } from './itinerary/itinerary.module';
+import { PlaceModule } from './place/place.module';
 import { SportTypeModule } from './sport-type/sport-type.module';
 import { SportModule } from './sport/sport.module';
 import { UsersModule } from './users/users.module';
-import { ImageModule } from './image/image.module';
 
 @Module({
   imports: [
@@ -102,6 +104,8 @@ import { ImageModule } from './image/image.module';
     ItineraryModule,
     SportTypeModule,
     ImageModule,
+    PlaceModule,
+    BenefitModule,
   ],
 })
 export class AppModule {}
