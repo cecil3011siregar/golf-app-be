@@ -1,5 +1,6 @@
+import { Benefit } from "#/benefit/entities/benefit.entity";
 import { Place } from "#/place/entities/place.entity";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class Holiday {
@@ -20,6 +21,10 @@ export class Holiday {
 
   @OneToMany(() => Place, (place) => place.holiday)
   place: Place[];
+
+  @ManyToMany(() => Benefit, (benefit) => benefit.holiday)
+  @JoinTable({ name: 'holiday_benefit' })
+  benefit: Benefit[]
 
   @CreateDateColumn({
     type: 'timestamp with time zone',

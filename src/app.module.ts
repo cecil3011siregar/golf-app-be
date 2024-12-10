@@ -14,6 +14,7 @@ import configuration from './config/configuration';
 import * as pino from 'pino';
 import { CoreModule } from '#/core/core.module';
 import { PlaceModule } from './place/place.module';
+import { BenefitModule } from './benefit/benefit.module';
 
 @Module({
   imports: [
@@ -102,6 +103,7 @@ import { PlaceModule } from './place/place.module';
     FilesModule,
     ItineraryModule,
     PlaceModule,
+    BenefitModule,
   ],
 })
 export class AppModule {}
