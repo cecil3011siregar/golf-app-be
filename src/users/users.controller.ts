@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Put,
-  Param,
-  Delete,
-  ParseUUIDPipe,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -18,54 +8,27 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
-    return {
-      data: await this.usersService.create(createUserDto),
-      statusCode: HttpStatus.CREATED,
-      message: 'success',
-    };
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
   }
 
   @Get()
-  async findAll() {
-    const [data, count] = await this.usersService.findAll();
-
-    return {
-      data,
-      count,
-      statusCode: HttpStatus.OK,
-      message: 'success',
-    };
+  findAll() {
+    return this.usersService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return {
-      data: await this.usersService.findOne(id),
-      statusCode: HttpStatus.OK,
-      message: 'success',
-    };
+  findOne(@Param('id') id: string) {
+    return this.usersService.findOne(+id);
   }
 
-  @Put(':id')
-  async update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
-    return {
-      data: await this.usersService.update(id, updateUserDto),
-      statusCode: HttpStatus.OK,
-      message: 'success',
-    };
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(+id, updateUserDto);
   }
 
   @Delete(':id')
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
-    await this.usersService.remove(id);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'success',
-    };
+  remove(@Param('id') id: string) {
+    return this.usersService.remove(+id);
   }
 }

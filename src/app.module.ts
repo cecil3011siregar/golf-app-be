@@ -3,6 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
 import { UsersModule } from './users/users.module';
+import { ItineraryModule } from './itinerary/itinerary.module';
+import { FilesModule } from './files/files.module';
+import { SportModule } from './sport/sport.module';
+import { HolidayModule } from './holiday/holiday.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { LoggerModule } from 'nestjs-pino';
 import { HealthModule } from './health/health.module';
@@ -70,9 +74,32 @@ import { CoreModule } from '#/core/core.module';
       }),
       isGlobal: true,
     }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => {
+        return {
+          type: configService.get<'postgres'>('database.client'),
+          host: configService.get<string>('database.host'),
+          port: configService.get<number>('database.port'),
+          username: configService.get<string>('database.username'),
+          password: configService.get<string>('database.password'),
+          database: configService.get<string>('database.name'),
+          entities: [],
+          synchronize: configService.get<boolean>('database.synchronize'),
+          logging: configService.get<boolean>('database.logging'),
+          autoLoadEntities: true,
+          namingStrategy: new SnakeNamingStrategy(),
+        };
+      },
+      inject: [ConfigService],
+    }),
     CoreModule,
     UsersModule,
     HealthModule,
+    HolidayModule,
+    SportModule,
+    FilesModule,
+    ItineraryModule,
   ],
 })
 export class AppModule {}
