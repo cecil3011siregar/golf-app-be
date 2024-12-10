@@ -1,34 +1,45 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, HttpStatus, ParseUUIDPipe, Put } from '@nestjs/common';
 import { BenefitService } from './benefit.service';
 import { CreateBenefitDto } from './dto/create-benefit.dto';
 import { UpdateBenefitDto } from './dto/update-benefit.dto';
 
-@Controller('benefit')
+@Controller('benefits')
 export class BenefitController {
   constructor(private readonly benefitService: BenefitService) {}
 
   @Post()
-  create(@Body() createBenefitDto: CreateBenefitDto) {
-    return this.benefitService.create(createBenefitDto);
+  async create(@Body() createBenefitDto: CreateBenefitDto) {
+    return {
+      data: await this.benefitService.create(createBenefitDto),
+      statusCode: HttpStatus.CREATED,
+      message: 'success',
+    }
   }
 
   @Get()
-  findAll() {
-    return this.benefitService.findAll();
+  async findAll() {
+    return {
+      data: await this.benefitService.findAll(),
+      statusCode: HttpStatus.OK,
+      message: 'success',
+    }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.benefitService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBenefitDto: UpdateBenefitDto) {
-    return this.benefitService.update(+id, updateBenefitDto);
+  @Put(':id')
+  async update(@Param('id', ParseUUIDPipe) id: string, @Body() updateBenefitDto: UpdateBenefitDto) {
+    return {
+      data: await this.benefitService.update(id, updateBenefitDto),
+      statusCode: HttpStatus.OK,
+      message: 'success',
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.benefitService.remove(+id);
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
+    await this.benefitService.remove(id);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'success',
+    }
   }
 }
