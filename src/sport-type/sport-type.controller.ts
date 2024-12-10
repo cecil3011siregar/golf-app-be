@@ -1,34 +1,68 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { SportTypeService } from './sport-type.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { CreateSportTypeDto } from './dto/create-sport-type.dto';
 import { UpdateSportTypeDto } from './dto/update-sport-type.dto';
+import { SportTypeService } from './sport-type.service';
 
-@Controller('sport-type')
+@Controller('sport-types')
 export class SportTypeController {
   constructor(private readonly sportTypeService: SportTypeService) {}
 
   @Post()
-  create(@Body() createSportTypeDto: CreateSportTypeDto) {
-    return this.sportTypeService.create(createSportTypeDto);
+  async create(@Body() createSportTypeDto: CreateSportTypeDto) {
+    return {
+      data: await this.sportTypeService.create(createSportTypeDto),
+      message: 'Success create sport type',
+      statusCode: HttpStatus.CREATED,
+    };
   }
 
   @Get()
-  findAll() {
-    return this.sportTypeService.findAll();
+  async findAll() {
+    return {
+      data: await this.sportTypeService.findAll(),
+      message: 'Success get all sport type',
+      statusCode: HttpStatus.OK,
+    };
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.sportTypeService.findOne(+id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return {
+      data: await this.sportTypeService.findOne(id),
+      message: 'Success get sport type',
+      statusCode: HttpStatus.OK,
+    };
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSportTypeDto: UpdateSportTypeDto) {
-    return this.sportTypeService.update(+id, updateSportTypeDto);
+  @Put(':id')
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateSportTypeDto: UpdateSportTypeDto,
+  ) {
+    return {
+      data: await this.sportTypeService.update(id, updateSportTypeDto),
+      message: 'Success update sport type',
+      statusCode: HttpStatus.OK,
+    };
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.sportTypeService.remove(+id);
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
+    await this.sportTypeService.remove(id);
+
+    return {
+      message: 'Success delete sport type',
+      statusCode: HttpStatus.OK,
+    };
   }
 }
