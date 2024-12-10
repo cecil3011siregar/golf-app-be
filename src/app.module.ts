@@ -13,6 +13,7 @@ import { HealthModule } from './health/health.module';
 import configuration from './config/configuration';
 import * as pino from 'pino';
 import { CoreModule } from '#/core/core.module';
+import { PlaceModule } from './place/place.module';
 
 @Module({
   imports: [
@@ -100,6 +101,7 @@ import { CoreModule } from '#/core/core.module';
     SportModule,
     FilesModule,
     ItineraryModule,
+    PlaceModule,
   ],
 })
 export class AppModule {}

@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Place } from "#/place/entities/place.entity";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class Holiday {
@@ -16,6 +17,9 @@ export class Holiday {
 
   @Column({ type: 'varchar', length: 60 })
   duration: string;
+
+  @OneToMany(() => Place, (place) => place.holiday)
+  place: Place[];
 
   @CreateDateColumn({
     type: 'timestamp with time zone',
