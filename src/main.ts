@@ -6,6 +6,7 @@ import { Logger } from 'nestjs-pino';
 import { CorrelationIdMiddleware } from './utils/correlation-id.middleware';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { GlobalJwtAuthGuard } from './auth/guard/jwt-auth.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -19,8 +20,12 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
+      transform: true,
     }),
   );
+
+  const globalAuthGuard = app.get(GlobalJwtAuthGuard);
+  app.useGlobalGuards(globalAuthGuard);
 
   const config = new DocumentBuilder()
     .setTitle('API Docs')

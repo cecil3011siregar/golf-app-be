@@ -4,6 +4,7 @@ import { CreateHolidayDto } from './dto/create-holiday.dto';
 import { UpdateHolidayDto } from './dto/update-holiday.dto';
 import { PaginationDto } from '#/utils/pagination';
 import { HolidayQueryDto } from './dto/query.dto';
+import { Public } from '#/auth/decorators/public.decorators';
 
 @Controller('holidays')
 export class HolidayController {
@@ -18,6 +19,7 @@ export class HolidayController {
     }
   }
 
+  @Public()
   @Get()
   async findAll(
     @Query() paginationDto: PaginationDto,
@@ -31,7 +33,7 @@ export class HolidayController {
     };
   }
 
-
+  @Public()
   @Get(':id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return {

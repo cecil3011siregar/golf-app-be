@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Delete, HttpStatus, ParseUUIDPipe, 
 import { BenefitService } from './benefit.service';
 import { CreateBenefitDto } from './dto/create-benefit.dto';
 import { UpdateBenefitDto } from './dto/update-benefit.dto';
+import { Public } from '#/auth/decorators/public.decorators';
 
 @Controller('benefits')
 export class BenefitController {
@@ -16,6 +17,7 @@ export class BenefitController {
     }
   }
 
+  @Public()
   @Get()
   async findAll() {
     return {

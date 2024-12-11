@@ -18,6 +18,8 @@ import { PlaceModule } from './place/place.module';
 import { SportTypeModule } from './sport-type/sport-type.module';
 import { SportModule } from './sport/sport.module';
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { SeederModule } from './seeder/seeder.module';
 
 @Module({
   imports: [
@@ -112,6 +114,8 @@ import { UsersModule } from './users/users.module';
     ImageModule,
     PlaceModule,
     BenefitModule,
+    AuthModule,
+    SeederModule,
   ],
 })
 export class AppModule {}

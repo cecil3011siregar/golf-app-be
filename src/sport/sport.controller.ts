@@ -15,6 +15,7 @@ import { CreateSportDto } from './dto/create-sport.dto';
 import { SportQueryDto } from './dto/query.dto';
 import { UpdateSportDto } from './dto/update-sport.dto';
 import { SportService } from './sport.service';
+import { Public } from '#/auth/decorators/public.decorators';
 
 @Controller('sport-holidays')
 export class SportController {
@@ -29,6 +30,7 @@ export class SportController {
     };
   }
 
+  @Public()
   @Get()
   async findAll(
     @Query() paginationDto: PaginationDto,
@@ -42,6 +44,7 @@ export class SportController {
     };
   }
 
+  @Public()
   @Get(':id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return {

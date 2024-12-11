@@ -12,6 +12,7 @@ import {
 import { CreateSportTypeDto } from './dto/create-sport-type.dto';
 import { UpdateSportTypeDto } from './dto/update-sport-type.dto';
 import { SportTypeService } from './sport-type.service';
+import { Public } from '#/auth/decorators/public.decorators';
 
 @Controller('sport-types')
 export class SportTypeController {
@@ -26,6 +27,7 @@ export class SportTypeController {
     };
   }
 
+  @Public()
   @Get()
   async findAll() {
     return {
@@ -35,6 +37,7 @@ export class SportTypeController {
     };
   }
 
+  @Public()
   @Get(':id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return {
