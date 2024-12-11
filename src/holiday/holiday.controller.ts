@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, HttpStatus, ParseUUIDPipe, Query } from '@nestjs/common';
 import { HolidayService } from './holiday.service';
 import { CreateHolidayDto } from './dto/create-holiday.dto';
 import { UpdateHolidayDto } from './dto/update-holiday.dto';
+import { PaginationDto } from '#/utils/pagination';
+import { HolidayQueryDto } from './dto/query.dto';
 
 @Controller('holidays')
 export class HolidayController {
@@ -17,13 +19,18 @@ export class HolidayController {
   }
 
   @Get()
-  async findAll() {
+  async findAll(
+    @Query() paginationDto: PaginationDto,
+    @Query() queryDto: HolidayQueryDto,
+  ) {
+    const data = await this.holidayService.findAll(paginationDto, queryDto);
     return {
-      data: await this.holidayService.findAll(),
+      ...data,
       statusCode: HttpStatus.OK,
-      message: 'success',
-    }
+      message: 'Success get all sport holidays',
+    };
   }
+
 
   @Get(':id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
