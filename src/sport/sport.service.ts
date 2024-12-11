@@ -1,4 +1,5 @@
 import { Image } from '#/image/entities/image.entity';
+import { Itinerary } from '#/itinerary/entities/itinerary.entity';
 import { SportTypeService } from '#/sport-type/sport-type.service';
 import { PaginationDto } from '#/utils/pagination';
 import {
@@ -7,6 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as fs from 'fs/promises';
 import {
   EntityNotFoundError,
   ILike,
@@ -25,6 +27,8 @@ export class SportService {
     private readonly sportRepository: Repository<Sport>,
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
+    @InjectRepository(Itinerary)
+    private readonly itineraryRepository: Repository<Itinerary>,
     private readonly sportTypeService: SportTypeService,
   ) {}
 
@@ -50,6 +54,14 @@ export class SportService {
         newImage.filename = image;
         newImage.sport = newSportHoliday;
         await this.imageRepository.insert(newImage);
+      });
+
+      createSportDto.itineraries.forEach(async (itinerary) => {
+        const newItinerary = new Itinerary();
+        newItinerary.day = itinerary.day;
+        newItinerary.description = itinerary.description;
+        newItinerary.sport = newSportHoliday;
+        await this.itineraryRepository.insert(newItinerary);
       });
 
       return await this.sportRepository.findOneOrFail({
@@ -106,13 +118,34 @@ export class SportService {
         order: sortClause,
         take: limit,
         skip: offset,
-        relations: ['sportType', 'images'],
+        relations: ['sportType'],
       });
+
+      const result = await Promise.all(
+        data.map(async (sportHoliday) => {
+          const firstImage = await this.imageRepository.findOne({
+            where: { sport: { id: sportHoliday.id } },
+            order: { createdAt: 'ASC' },
+          });
+
+          if (!firstImage) {
+            return {
+              ...sportHoliday,
+              image: null,
+            };
+          }
+
+          return {
+            ...sportHoliday,
+            image: firstImage?.filename,
+          };
+        }),
+      );
 
       const totalPages = Math.ceil(totalItems / limit);
 
       return {
-        data,
+        data: result,
         page,
         limit,
         totalPages,
@@ -130,10 +163,16 @@ export class SportService {
 
   async findOne(id: string) {
     try {
-      return await this.sportRepository.findOneOrFail({
+      const sportHoliday = await this.sportRepository.findOneOrFail({
         where: { id },
         relations: ['sportType', 'images', 'itineraries'],
       });
+
+      const { images, ...result } = sportHoliday;
+
+      const imagesName = images.map((image) => image.filename);
+
+      return { ...result, images: imagesName };
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException('Sport holiday not found');
@@ -145,7 +184,7 @@ export class SportService {
 
   async update(id: string, updateSportDto: UpdateSportDto) {
     try {
-      const sport = await this.sportRepository.findOneOrFail({
+      const sportHoliday = await this.sportRepository.findOneOrFail({
         where: { id },
       });
 
@@ -154,16 +193,16 @@ export class SportService {
           updateSportDto.sportTypeId,
         );
 
-        sport.sportType = sportType;
+        sportHoliday.sportType = sportType;
       }
-      sport.title = updateSportDto.title;
-      sport.price = updateSportDto.price;
-      sport.description = updateSportDto.description;
-      sport.city = updateSportDto.city;
-      sport.location = updateSportDto.location;
-      sport.duration = updateSportDto.duration;
+      sportHoliday.title = updateSportDto.title;
+      sportHoliday.price = updateSportDto.price;
+      sportHoliday.description = updateSportDto.description;
+      sportHoliday.city = updateSportDto.city;
+      sportHoliday.location = updateSportDto.location;
+      sportHoliday.duration = updateSportDto.duration;
 
-      await this.sportRepository.update(id, sport);
+      await this.sportRepository.update(id, sportHoliday);
 
       return await this.sportRepository.findOneOrFail({
         where: { id },
@@ -183,7 +222,26 @@ export class SportService {
 
   async remove(id: string) {
     try {
-      await this.findOne(id);
+      const sportHoliday = await this.sportRepository.findOneOrFail({
+        where: { id },
+        relations: ['images'],
+      });
+
+      if (sportHoliday.images.length > 0) {
+        sportHoliday.images.forEach(async (image) => {
+          const imagePath = `./uploads/images/${image.filename}`;
+          const fileExists = await fs
+            .access(imagePath)
+            .then(() => true)
+            .catch(() => false);
+
+          if (fileExists) {
+            await fs.unlink(imagePath);
+          }
+
+          await this.imageRepository.softDelete(image.id);
+        });
+      }
 
       await this.sportRepository.softDelete(id);
     } catch (error) {
@@ -191,6 +249,8 @@ export class SportService {
         throw new InternalServerErrorException(
           'Something went wrong while deleting sport holiday.',
         );
+      } else if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Sport holiday not found');
       }
 
       throw error;
