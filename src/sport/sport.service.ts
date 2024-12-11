@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as fs from 'fs/promises';
 import {
   EntityNotFoundError,
   ILike,
@@ -145,7 +146,7 @@ export class SportService {
 
   async update(id: string, updateSportDto: UpdateSportDto) {
     try {
-      const sport = await this.sportRepository.findOneOrFail({
+      const sportHoliday = await this.sportRepository.findOneOrFail({
         where: { id },
       });
 
@@ -154,16 +155,16 @@ export class SportService {
           updateSportDto.sportTypeId,
         );
 
-        sport.sportType = sportType;
+        sportHoliday.sportType = sportType;
       }
-      sport.title = updateSportDto.title;
-      sport.price = updateSportDto.price;
-      sport.description = updateSportDto.description;
-      sport.city = updateSportDto.city;
-      sport.location = updateSportDto.location;
-      sport.duration = updateSportDto.duration;
+      sportHoliday.title = updateSportDto.title;
+      sportHoliday.price = updateSportDto.price;
+      sportHoliday.description = updateSportDto.description;
+      sportHoliday.city = updateSportDto.city;
+      sportHoliday.location = updateSportDto.location;
+      sportHoliday.duration = updateSportDto.duration;
 
-      await this.sportRepository.update(id, sport);
+      await this.sportRepository.update(id, sportHoliday);
 
       return await this.sportRepository.findOneOrFail({
         where: { id },
@@ -183,7 +184,23 @@ export class SportService {
 
   async remove(id: string) {
     try {
-      await this.findOne(id);
+      const sportHoliday = await this.findOne(id);
+
+      if (sportHoliday.images.length > 0) {
+        sportHoliday.images.forEach(async (image) => {
+          const imagePath = `./uploads/images/${image.filename}`;
+          const fileExists = await fs
+            .access(imagePath)
+            .then(() => true)
+            .catch(() => false);
+
+          if (fileExists) {
+            await fs.unlink(imagePath);
+          }
+
+          await this.imageRepository.softDelete(image.id);
+        });
+      }
 
       await this.sportRepository.softDelete(id);
     } catch (error) {
