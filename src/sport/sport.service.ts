@@ -1,3 +1,4 @@
+import { Image } from '#/image/entities/image.entity';
 import { SportTypeService } from '#/sport-type/sport-type.service';
 import { PaginationDto } from '#/utils/pagination';
 import {
@@ -22,6 +23,8 @@ export class SportService {
   constructor(
     @InjectRepository(Sport)
     private readonly sportRepository: Repository<Sport>,
+    @InjectRepository(Image)
+    private readonly imageRepository: Repository<Image>,
     private readonly sportTypeService: SportTypeService,
   ) {}
 
@@ -41,6 +44,13 @@ export class SportService {
       newSportHoliday.duration = createSportDto.duration;
 
       const insertResult = await this.sportRepository.insert(newSportHoliday);
+
+      createSportDto.images.forEach(async (image) => {
+        const newImage = new Image();
+        newImage.filename = image;
+        newImage.sport = newSportHoliday;
+        await this.imageRepository.insert(newImage);
+      });
 
       return await this.sportRepository.findOneOrFail({
         where: { id: insertResult.identifiers[0].id },

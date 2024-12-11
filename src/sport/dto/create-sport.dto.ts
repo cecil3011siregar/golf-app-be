@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsUUID, Min } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsNotEmpty,
+  IsUUID,
+  Min,
+} from 'class-validator';
 
 export class CreateSportDto {
   @IsNotEmpty()
@@ -25,4 +31,9 @@ export class CreateSportDto {
 
   @IsNotEmpty()
   duration: string;
+
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayMinSize(1)
+  images: string[];
 }

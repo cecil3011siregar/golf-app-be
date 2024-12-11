@@ -1,9 +1,11 @@
 import { CoreModule } from '#/core/core.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { LoggerModule } from 'nestjs-pino';
+import { join } from 'path';
 import * as pino from 'pino';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { BenefitModule } from './benefit/benefit.module';
@@ -95,6 +97,10 @@ import { UsersModule } from './users/users.module';
         };
       },
       inject: [ConfigService],
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads/images'),
+      serveRoot: '/images',
     }),
     CoreModule,
     UsersModule,
