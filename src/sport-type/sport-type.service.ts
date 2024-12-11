@@ -47,7 +47,7 @@ export class SportTypeService {
       });
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
-        throw new NotFoundException('Sport type not found');
+        throw new NotFoundException('Created sport type not found');
       }
 
       throw error;

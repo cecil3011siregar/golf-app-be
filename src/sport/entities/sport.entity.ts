@@ -20,6 +20,12 @@ export class Sport {
   @Column()
   title: string;
 
+  @Column({
+    type: 'int',
+    nullable: false,
+  })
+  price: number;
+
   @Column({ type: 'text' })
   description: string;
 
@@ -61,9 +67,9 @@ export class Sport {
   @ManyToOne(() => SportType, (sportType) => sportType.sports)
   sportType: SportType;
 
-  @OneToMany(() => Itinerary, (itinerary) => itinerary.sport)
+  @OneToMany(() => Itinerary, (itinerary) => itinerary.sport, { cascade: true })
   itineraries: Itinerary[];
 
-  @OneToMany(() => Image, (image) => image.sport)
+  @OneToMany(() => Image, (image) => image.sport, { cascade: true })
   images: Image[];
 }
