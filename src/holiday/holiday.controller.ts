@@ -1,34 +1,57 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
 import { HolidayService } from './holiday.service';
 import { CreateHolidayDto } from './dto/create-holiday.dto';
 import { UpdateHolidayDto } from './dto/update-holiday.dto';
 
-@Controller('holiday')
+@Controller('holidays')
 export class HolidayController {
   constructor(private readonly holidayService: HolidayService) {}
 
   @Post()
-  create(@Body() createHolidayDto: CreateHolidayDto) {
-    return this.holidayService.create(createHolidayDto);
+  async create(@Body() createHolidayDto: CreateHolidayDto) {
+    return {
+      data: await this.holidayService.create(createHolidayDto),
+      statusCode: HttpStatus.CREATED,
+      message: 'success',
+    }
   }
 
   @Get()
-  findAll() {
-    return this.holidayService.findAll();
+  async findAll() {
+    return {
+      data: await this.holidayService.findAll(),
+      statusCode: HttpStatus.OK,
+      message: 'success',
+    }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.holidayService.findOne(+id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return {
+      data: await this.holidayService.findOne(id),
+      statusCode: HttpStatus.OK,
+      message: 'success',
+    }
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateHolidayDto: UpdateHolidayDto) {
-    return this.holidayService.update(+id, updateHolidayDto);
+  @Put(':id')
+  async update(
+    @Param('id', ParseUUIDPipe) id: string, 
+    @Body() updateHolidayDto: UpdateHolidayDto
+  ) {
+    return {
+      data: await this.holidayService.update(id, updateHolidayDto),
+      statusCode: HttpStatus.OK,
+      message: 'success',
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.holidayService.remove(+id);
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
+    await this.holidayService.remove(id);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'success',
+    }
   }
 }
