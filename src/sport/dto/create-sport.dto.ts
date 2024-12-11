@@ -1,3 +1,4 @@
+import { CreateItineraryDto } from '#/itinerary/dto/create-itinerary.dto';
 import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
@@ -5,6 +6,7 @@ import {
   IsNotEmpty,
   IsUUID,
   Min,
+  ValidateNested,
 } from 'class-validator';
 
 export class CreateSportDto {
@@ -36,4 +38,11 @@ export class CreateSportDto {
   @IsArray()
   @ArrayMinSize(1)
   images: string[];
+
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => CreateItineraryDto)
+  itineraries: CreateItineraryDto[];
 }
