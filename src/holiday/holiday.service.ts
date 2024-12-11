@@ -6,6 +6,8 @@ import { Holiday } from './entities/holiday.entity';
 import { EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
 import { Benefit } from '#/benefit/entities/benefit.entity';
 import { Place } from '#/place/entities/place.entity';
+import { PaginationDto } from '#/utils/pagination';
+import { HolidayQueryDto, HolidaySort } from './dto/query.dto';
 
 @Injectable()
 export class HolidayService {
@@ -36,7 +38,7 @@ export class HolidayService {
       );
 
       const holiday = this.holidayRepository.create({
-        name: createHolidayDto.title,
+        title: createHolidayDto.title,
         price: createHolidayDto.price,
         description: createHolidayDto.description,
         duration: createHolidayDto.duration,
@@ -67,9 +69,58 @@ export class HolidayService {
     }
   }
 
-  findAll() {
-    return `This action returns all holiday`;
+  async findAll(paginationDto: PaginationDto, queryDto: HolidayQueryDto) {
+    try {
+      const { page, limit } = paginationDto;
+      const { sort } = queryDto;
+      const offset = (page - 1) * limit;
+      const whereClause = {};
+      const sortClause = {};
+
+      if (sort) {
+        switch (sort) {
+          case HolidaySort.AZ:
+            sortClause['title'] = 'ASC';
+            break;
+          case HolidaySort.ZA:
+            sortClause['title'] = 'DESC';
+            break;
+          case HolidaySort.LOWEST_PRICE:
+            sortClause['price'] = 'ASC';
+            break;
+          case HolidaySort.HIGHEST_PRICE:
+            sortClause['price'] = 'DESC';
+            break;
+          default:
+            break;
+        }
+      }
+
+      const [data, totalItems] = await this.holidayRepository.findAndCount({
+        where: whereClause,
+        order: sortClause,
+        take: limit,
+        skip: offset,
+        relations: ['place', 'benefit'],
+      });
+
+      const totalPages = Math.ceil(totalItems / limit);
+
+      return {
+        data,
+        page,
+        limit,
+        totalPages,
+        totalItems,
+      };
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        throw new BadRequestException();
+      }
+      throw new InternalServerErrorException();
+    }
   }
+
 
   async findOne(id: string) {
     try {
@@ -109,7 +160,7 @@ export class HolidayService {
 
       const updatedHoliday = this.holidayRepository.create({
         ...holiday,
-        name: updateHolidayDto.title,
+        title: updateHolidayDto.title,
         price: updateHolidayDto.price,
         description: updateHolidayDto.description,
         duration: updateHolidayDto.duration,
@@ -128,7 +179,7 @@ export class HolidayService {
           holidayId: updatedHoliday.id 
         })
       );
-      
+
       const placesToRemove = holiday.place.filter(
         place => !updateHolidayDto.places.includes(place.name)
       );

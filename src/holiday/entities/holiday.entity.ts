@@ -8,7 +8,7 @@ export class Holiday {
   id: string;
 
   @Column({ type: 'varchar', length: 255 })
-  name: string;
+  title: string;
   
   @Column({ type: 'int' })
   price: number;
