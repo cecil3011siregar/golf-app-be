@@ -8,6 +8,8 @@ import { Benefit } from '#/benefit/entities/benefit.entity';
 import { Place } from '#/place/entities/place.entity';
 import { PaginationDto } from '#/utils/pagination';
 import { HolidayQueryDto, HolidaySort } from './dto/query.dto';
+import { Image } from '#/image/entities/image.entity';
+import { Itinerary } from '#/itinerary/entities/itinerary.entity';
 
 @Injectable()
 export class HolidayService {
@@ -18,6 +20,10 @@ export class HolidayService {
     private readonly benefitRepository: Repository<Benefit>,
     @InjectRepository(Place)
     private readonly placeRepository: Repository<Place>,
+    @InjectRepository(Image)
+    private readonly imageRepository: Repository<Image>,
+    @InjectRepository(Itinerary)
+    private readonly itineraryRepository: Repository<Itinerary>,
   ) {}
 
   async create(createHolidayDto: CreateHolidayDto) {
@@ -54,9 +60,25 @@ export class HolidayService {
       );
       await this.placeRepository.save(placeVisits);
 
+      const images = createHolidayDto.images.map((imageName) => 
+        this.imageRepository.create({ 
+          filename: imageName, 
+          holidayId: holiday.id 
+        })
+      );
+      await this.imageRepository.save(images);
+
+      const itineraries = createHolidayDto.itineraries.map((itinerary) => 
+        this.itineraryRepository.create({ 
+          day: itinerary.day,
+          description: itinerary.description,
+          holidayId: holiday.id 
+        })
+      );
+      await this.itineraryRepository.save(itineraries);
+
       return await this.holidayRepository.findOneOrFail({
         where: { id: holiday.id },
-        relations: ['place', 'benefit'],
       });
     } catch (error) {
       if (error instanceof QueryFailedError) {
@@ -101,7 +123,7 @@ export class HolidayService {
         order: sortClause,
         take: limit,
         skip: offset,
-        relations: ['place', 'benefit'],
+        relations: ['benefit', 'image'],
       });
 
       const totalPages = Math.ceil(totalItems / limit);
@@ -121,12 +143,11 @@ export class HolidayService {
     }
   }
 
-
   async findOne(id: string) {
     try {
       return await this.holidayRepository.findOneOrFail({
         where: { id },
-        relations: ['place', 'benefit'],
+        relations: ['place', 'benefit', 'image', 'itinerary'],
       });
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
@@ -140,7 +161,7 @@ export class HolidayService {
     try {
       const holiday = await this.holidayRepository.findOneOrFail({
         where: { id },
-        relations: ['place', 'benefit'],
+        relations: ['place', 'benefit', 'image', 'itinerary'],
       });
 
       const benefits = await Promise.all(
@@ -192,9 +213,61 @@ export class HolidayService {
         await this.placeRepository.save(newPlaces);
       }
 
+      const existingImages = holiday.image.map(i => i.filename);
+      
+      const newImageNames = updateHolidayDto.images.filter(
+        imageName => !existingImages.includes(imageName)
+      );
+      const newImages = newImageNames.map(
+        imageName => this.imageRepository.create({ 
+          filename: imageName, 
+          holidayId: updatedHoliday.id 
+        })
+      );
+
+      const imagesToRemove = holiday.image.filter(
+        image => !updateHolidayDto.images.includes(image.filename)
+      );
+      
+      if (imagesToRemove.length > 0) {
+        await this.imageRepository.softRemove(imagesToRemove);
+      }
+
+      if (newImages.length > 0) {
+        await this.imageRepository.save(newImages);
+      }
+
+      const existingItineraries = holiday.itinerary.map(i => i.day);
+      
+      const newItineraryDays = updateHolidayDto.itineraries.filter(
+        itineraryDay => !existingItineraries.includes(itineraryDay.day)
+      );
+      const newItineraries = newItineraryDays.map(
+        itineraryDay => this.itineraryRepository.create({ 
+          day: itineraryDay.day, 
+          description: itineraryDay.description, 
+          holidayId: updatedHoliday.id 
+        })
+      );
+
+      const itinerariesToRemove = holiday.itinerary.filter(
+        itinerary =>
+          !updateHolidayDto.itineraries.some(
+            updateItinerary => updateItinerary.day === itinerary.day
+          )
+      );
+      
+      
+      if (itinerariesToRemove.length > 0) {
+        await this.itineraryRepository.softRemove(itinerariesToRemove);
+      }
+
+      if (newItineraries.length > 0) {
+        await this.itineraryRepository.save(newItineraries);
+      }
+
       return await this.holidayRepository.findOneOrFail({
         where: { id },
-        relations: ['place', 'benefit'],
       });
     } catch (error) {
       if (error instanceof EntityNotFoundError) {

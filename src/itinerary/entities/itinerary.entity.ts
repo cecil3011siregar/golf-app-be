@@ -1,3 +1,4 @@
+import { Holiday } from '#/holiday/entities/holiday.entity';
 import { Sport } from '#/sport/entities/sport.entity';
 import {
   Column,
@@ -47,4 +48,9 @@ export class Itinerary {
 
   @ManyToOne(() => Sport, (sport) => sport.itineraries, { nullable: true })
   sport: Sport;
+
+  @ManyToOne(() => Holiday, (holiday) => holiday.itinerary, { nullable: true })
+  holiday: Holiday;
+  @Column({ type: 'uuid', nullable: true })
+  holidayId: string;
 }
