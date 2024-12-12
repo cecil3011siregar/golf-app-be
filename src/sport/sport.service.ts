@@ -12,6 +12,7 @@ import * as fs from 'fs/promises';
 import {
   Between,
   EntityNotFoundError,
+  FindOptionsWhere,
   ILike,
   Not,
   QueryFailedError,
@@ -85,61 +86,65 @@ export class SportService {
   async findAll(paginationDto: PaginationDto, queryDto: SportQueryDto) {
     try {
       const { page, limit } = paginationDto;
-      const { sort, type } = queryDto;
+      const { sort, type, search } = queryDto;
       const offset = (page - 1) * limit;
-      const whereClause = {};
-      const sortClause = {};
+      const whereClause: FindOptionsWhere<Sport>[] = [];
+      const sortClause: Record<string, 'ASC' | 'DESC'> = {};
 
+      // Filter by sport type
       if (type) {
-        whereClause['sportType'] = {
-          name: ILike(`%${type}%`),
-        };
+        whereClause.push({ sportType: { name: ILike(`%${type}%`) } });
       }
 
+      // Search by title or city
+      if (search) {
+        whereClause.push(
+          { title: ILike(`%${search}%`) },
+          { city: ILike(`%${search}%`) },
+          { location: ILike(`%${search}%`) },
+        );
+      }
+
+      // Sorting
       if (sort) {
         switch (sort) {
           case SportSort.AZ:
-            sortClause['title'] = 'ASC';
+            sortClause.title = 'ASC';
             break;
           case SportSort.ZA:
-            sortClause['title'] = 'DESC';
+            sortClause.title = 'DESC';
             break;
           case SportSort.LOWEST_PRICE:
-            sortClause['price'] = 'ASC';
+            sortClause.price = 'ASC';
             break;
           case SportSort.HIGHEST_PRICE:
-            sortClause['price'] = 'DESC';
+            sortClause.price = 'DESC';
             break;
           default:
             break;
         }
       }
 
+      // Query database
       const [data, totalItems] = await this.sportRepository.findAndCount({
-        where: whereClause,
+        where: whereClause.length > 0 ? whereClause : undefined,
         order: sortClause,
         take: limit,
         skip: offset,
         relations: ['sportType'],
       });
 
+      // Fetch first image for each sport
       const result = await Promise.all(
-        data.map(async (sportHoliday) => {
+        data.map(async (sport) => {
           const firstImage = await this.imageRepository.findOne({
-            where: { sport: { id: sportHoliday.id } },
+            where: { sport: { id: sport.id } },
             order: { createdAt: 'ASC' },
           });
 
-          if (!firstImage) {
-            return {
-              ...sportHoliday,
-              image: null,
-            };
-          }
-
           return {
-            ...sportHoliday,
-            image: firstImage?.filename,
+            ...sport,
+            image: firstImage?.filename || null,
           };
         }),
       );
