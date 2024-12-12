@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export enum SportSort {
   LOWEST_PRICE = 'lowest_price',
@@ -14,4 +14,8 @@ export class SportQueryDto {
   @IsOptional()
   @IsEnum(SportSort)
   sort: SportSort;
+
+  @IsOptional()
+  @IsString()
+  search: string;
 }
