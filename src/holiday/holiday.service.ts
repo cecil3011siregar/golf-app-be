@@ -3,7 +3,7 @@ import { CreateHolidayDto } from './dto/create-holiday.dto';
 import { UpdateHolidayDto } from './dto/update-holiday.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Holiday } from './entities/holiday.entity';
-import { EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
+import { Between, EntityNotFoundError, Not, QueryFailedError, Repository } from 'typeorm';
 import { Benefit } from '#/benefit/entities/benefit.entity';
 import { Place } from '#/place/entities/place.entity';
 import { PaginationDto } from '#/utils/pagination';
@@ -145,14 +145,33 @@ export class HolidayService {
 
   async findOne(id: string) {
     try {
-      return await this.holidayRepository.findOneOrFail({
+      const holiday = await this.holidayRepository.findOneOrFail({
         where: { id },
         relations: ['place', 'benefit', 'image', 'itinerary'],
       });
+
+      const recommendations = await this.holidayRepository.find({
+        where: {
+          id: Not(id),
+          price: Between(holiday.price * 0.5, holiday.price * 1.5),
+        },
+        relations: ['benefit', 'image'],
+        order: {
+          price: 'ASC',
+          duration: 'ASC',
+        },
+        take: 3,
+      });
+
+      return {
+        ...holiday,
+        recommendations,
+      }
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException();
       }
+      console.log(error);
       throw new InternalServerErrorException();
     }
   }
