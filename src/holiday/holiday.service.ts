@@ -3,7 +3,7 @@ import { CreateHolidayDto } from './dto/create-holiday.dto';
 import { UpdateHolidayDto } from './dto/update-holiday.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Holiday } from './entities/holiday.entity';
-import { Between, EntityNotFoundError, Not, QueryFailedError, Repository } from 'typeorm';
+import { Between, EntityNotFoundError, FindOptionsWhere, ILike, Not, QueryFailedError, Repository } from 'typeorm';
 import { Benefit } from '#/benefit/entities/benefit.entity';
 import { Place } from '#/place/entities/place.entity';
 import { PaginationDto } from '#/utils/pagination';
@@ -94,11 +94,14 @@ export class HolidayService {
   async findAll(paginationDto: PaginationDto, queryDto: HolidayQueryDto) {
     try {
       const { page, limit } = paginationDto;
-      const { sort } = queryDto;
+      const { sort, search } = queryDto;
       const offset = (page - 1) * limit;
-      const whereClause = {};
-      const sortClause = {};
+      const whereClause: FindOptionsWhere<Holiday> = {};
+      if (search) {
+        whereClause.title = ILike(`%${search}%`);
+      }
 
+      const sortClause = {};
       if (sort) {
         switch (sort) {
           case HolidaySort.AZ:
@@ -275,9 +278,25 @@ export class HolidayService {
           )
       );
       
-      
       if (itinerariesToRemove.length > 0) {
         await this.itineraryRepository.softRemove(itinerariesToRemove);
+      }
+
+      const itinerariesToUpdate = holiday.itinerary.filter(itinerary => {
+        const updatedItinerary = updateHolidayDto.itineraries.find(
+          updateItinerary => updateItinerary.day === itinerary.day
+        );
+        return updatedItinerary && updatedItinerary.description !== itinerary.description;
+      });
+  
+      for (const itinerary of itinerariesToUpdate) {
+        const updatedItinerary = updateHolidayDto.itineraries.find(
+          updateItinerary => updateItinerary.day === itinerary.day
+        );
+        if (updatedItinerary) {
+          itinerary.description = updatedItinerary.description;
+          await this.itineraryRepository.save(itinerary);
+        }
       }
 
       if (newItineraries.length > 0) {
