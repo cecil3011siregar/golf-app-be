@@ -29,7 +29,7 @@ export class HolidayController {
     return {
       ...data,
       statusCode: HttpStatus.OK,
-      message: 'Success get all sport holidays',
+      message: 'success',
     };
   }
 

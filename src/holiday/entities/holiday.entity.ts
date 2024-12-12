@@ -1,4 +1,6 @@
 import { Benefit } from "#/benefit/entities/benefit.entity";
+import { Image } from "#/image/entities/image.entity";
+import { Itinerary } from "#/itinerary/entities/itinerary.entity";
 import { Place } from "#/place/entities/place.entity";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
@@ -25,6 +27,12 @@ export class Holiday {
   @ManyToMany(() => Benefit, (benefit) => benefit.holiday)
   @JoinTable({ name: 'holiday_benefit' })
   benefit: Benefit[]
+
+  @OneToMany(() => Itinerary, (itinenary) => itinenary.holiday)
+  itinerary: Itinerary[];
+
+  @OneToMany(() => Image, (image) => image.holiday)
+  image: Image[];
 
   @CreateDateColumn({
     name: 'created_at',

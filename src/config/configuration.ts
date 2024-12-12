@@ -6,7 +6,7 @@ export default () => {
       public: process.env.JWT_PUBLIC_KEY,
     },
     user: {
-      password: process.env.USER_PASSWORD || 'admin#1234',
+      password: process.env.USER_PASSWORD,
     },
     database: {
       client: process.env.DATABASE_CLIENT,
