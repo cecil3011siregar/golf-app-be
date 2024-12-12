@@ -10,8 +10,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import * as fs from 'fs/promises';
 import {
+  Between,
   EntityNotFoundError,
   ILike,
+  Not,
   QueryFailedError,
   Repository,
 } from 'typeorm';
@@ -248,6 +250,79 @@ export class SportService {
       if (error instanceof QueryFailedError) {
         throw new InternalServerErrorException(
           'Something went wrong while deleting sport holiday.',
+        );
+      } else if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Sport holiday not found');
+      }
+
+      throw error;
+    }
+  }
+
+  async getRecommendations(id: string, paginationDto: PaginationDto) {
+    try {
+      const { page, limit } = paginationDto;
+      const offset = (page - 1) * limit;
+
+      // Find the base sport holiday
+      const sportHoliday = await this.sportRepository.findOneOrFail({
+        where: { id },
+        relations: ['sportType'],
+      });
+
+      // Find recommendations
+      const [data, totalItems] = await this.sportRepository.findAndCount({
+        where: {
+          id: Not(id),
+          sportType: {
+            name: sportHoliday.sportType.name,
+          },
+          price: Between(sportHoliday.price * 0.8, sportHoliday.price * 1.2),
+        },
+        relations: ['sportType'],
+        order: {
+          price: 'ASC', // Order by price proximity
+          duration: 'ASC', // Secondary order by duration
+        },
+        take: limit,
+        skip: offset,
+      });
+
+      const totalPages = Math.ceil(totalItems / limit);
+
+      const result = await Promise.all(
+        data.map(async (sportHoliday) => {
+          const firstImage = await this.imageRepository.findOne({
+            where: { sport: { id: sportHoliday.id } },
+            order: { createdAt: 'ASC' },
+          });
+
+          if (!firstImage) {
+            return {
+              ...sportHoliday,
+              image: null,
+            };
+          }
+
+          return {
+            ...sportHoliday,
+            image: firstImage?.filename,
+          };
+        }),
+      );
+
+      return {
+        data: result,
+        page,
+        limit,
+        totalPages,
+        totalItems,
+      };
+    } catch (error) {
+      // Error handling
+      if (error instanceof QueryFailedError) {
+        throw new InternalServerErrorException(
+          'Something went wrong while fetching sport holiday recommendations.',
         );
       } else if (error instanceof EntityNotFoundError) {
         throw new NotFoundException('Sport holiday not found');
