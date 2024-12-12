@@ -171,7 +171,6 @@ export class HolidayService {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException();
       }
-      console.log(error);
       throw new InternalServerErrorException();
     }
   }
