@@ -1,3 +1,4 @@
+import { Public } from '#/auth/decorators/public.decorators';
 import { PaginationDto } from '#/utils/pagination';
 import {
   Body,
@@ -15,7 +16,6 @@ import { CreateSportDto } from './dto/create-sport.dto';
 import { SportQueryDto } from './dto/query.dto';
 import { UpdateSportDto } from './dto/update-sport.dto';
 import { SportService } from './sport.service';
-import { Public } from '#/auth/decorators/public.decorators';
 
 @Controller('sport-holidays')
 export class SportController {
@@ -51,6 +51,21 @@ export class SportController {
       data: await this.sportService.findOne(id),
       statusCode: HttpStatus.OK,
       message: 'Success get sport holiday',
+    };
+  }
+
+  @Public()
+  @Get(':id/recommendations')
+  async getRecommendations(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    const data = await this.sportService.getRecommendations(id, paginationDto);
+
+    return {
+      ...data,
+      statusCode: HttpStatus.OK,
+      message: 'Success get recommendations',
     };
   }
 
