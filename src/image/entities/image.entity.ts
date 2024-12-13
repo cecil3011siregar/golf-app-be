@@ -1,3 +1,4 @@
+import { Benefit } from '#/benefit/entities/benefit.entity';
 import { Holiday } from '#/holiday/entities/holiday.entity';
 import { Sport } from '#/sport/entities/sport.entity';
 import {
@@ -6,6 +7,7 @@ import {
   DeleteDateColumn,
   Entity,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -48,4 +50,9 @@ export class Image {
   holiday: Holiday;
   @Column({ type: 'uuid', nullable: true })
   holidayId: string;
+
+  @OneToOne(() => Benefit, (benefit) => benefit.image, { nullable: true })
+  benefit: Benefit;
+  @Column({ type: 'uuid', nullable: true })
+  benefitId: string;
 }

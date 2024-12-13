@@ -1,5 +1,6 @@
 import { Holiday } from "#/holiday/entities/holiday.entity";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Image } from "#/image/entities/image.entity";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class Benefit {
@@ -8,6 +9,9 @@ export class Benefit {
 
   @Column({ type: 'varchar', length: 60 })
   name: string;
+
+  @OneToOne(() => Image, (image) => image.benefit)
+  image: Image;
 
   @ManyToMany(() => Holiday, (Holiday) => Holiday.benefit)
   holiday: Holiday[]
