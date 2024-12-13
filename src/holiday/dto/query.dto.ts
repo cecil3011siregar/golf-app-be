@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export enum HolidaySort {
   LOWEST_PRICE = 'lowest_price',
@@ -10,5 +10,9 @@ export enum HolidaySort {
 export class HolidayQueryDto {
   @IsOptional()
   @IsEnum(HolidaySort)
-  sort: HolidaySort;
+  sort?: HolidaySort;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 }
