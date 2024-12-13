@@ -1,3 +1,4 @@
+import { Image } from '#/image/entities/image.entity';
 import {
   ConflictException,
   Injectable,
@@ -20,6 +21,8 @@ export class SportTypeService {
   constructor(
     @InjectRepository(SportType)
     private readonly sportTypeRepository: Repository<SportType>,
+    @InjectRepository(Image)
+    private readonly imageRepository: Repository<Image>,
   ) {}
 
   async create(createSportTypeDto: CreateSportTypeDto) {
@@ -42,6 +45,11 @@ export class SportTypeService {
 
       const insertResult = await this.sportTypeRepository.insert(newSportType);
 
+      const newImage = new Image();
+      newImage.filename = createSportTypeDto.image;
+      newImage.sportType = newSportType;
+      await this.imageRepository.insert(newImage);
+
       return await this.sportTypeRepository.findOneOrFail({
         where: { id: insertResult.identifiers[0].id },
       });
@@ -56,8 +64,19 @@ export class SportTypeService {
 
   async findAll() {
     try {
-      const data = await this.sportTypeRepository.find();
-      return data;
+      const data = await this.sportTypeRepository.find({
+        relations: ['image'],
+      });
+
+      const result = data.map((sportType) => {
+        if (sportType.image) {
+          return { ...sportType, image: sportType.image.filename };
+        }
+
+        return sportType;
+      });
+
+      return result;
     } catch (error) {
       throw new InternalServerErrorException(
         'Something went wrong while fetching sport types.',
@@ -93,6 +112,22 @@ export class SportTypeService {
       sportType.name = updateSportTypeDto.name;
 
       await this.sportTypeRepository.update(id, sportType);
+
+      if (updateSportTypeDto.image) {
+        const image = await this.imageRepository.findOne({
+          where: { sportType: { id } },
+        });
+
+        if (image) {
+          image.filename = updateSportTypeDto.image;
+          await this.imageRepository.update(image.id, image);
+        } else {
+          const newImage = new Image();
+          newImage.filename = updateSportTypeDto.image;
+          newImage.sportType = sportType;
+          await this.imageRepository.insert(newImage);
+        }
+      }
 
       return await this.findOne(id);
     } catch (error) {

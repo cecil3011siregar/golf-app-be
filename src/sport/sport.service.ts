@@ -193,6 +193,7 @@ export class SportService {
     try {
       const sportHoliday = await this.sportRepository.findOneOrFail({
         where: { id },
+        relations: ['images', 'itineraries'],
       });
 
       if (updateSportDto.sportTypeId) {
@@ -209,7 +210,80 @@ export class SportService {
       sportHoliday.location = updateSportDto.location;
       sportHoliday.duration = updateSportDto.duration;
 
-      await this.sportRepository.update(id, sportHoliday);
+      await this.sportRepository.save(sportHoliday);
+
+      const existingImages = sportHoliday.images.map((i) => i.filename);
+
+      const newImageNames = updateSportDto.images.filter(
+        (imageName) => !existingImages.includes(imageName),
+      );
+      const newImages = newImageNames.map((imageName) =>
+        this.imageRepository.create({
+          filename: imageName,
+          sport: sportHoliday,
+        }),
+      );
+
+      const imagesToRemove = sportHoliday.images.filter(
+        (image) => !updateSportDto.images.includes(image.filename),
+      );
+
+      if (imagesToRemove.length > 0) {
+        await this.imageRepository.softRemove(imagesToRemove);
+      }
+
+      if (newImages.length > 0) {
+        await this.imageRepository.save(newImages);
+      }
+
+      const existingItineraries = sportHoliday.itineraries.map((i) => i.day);
+
+      const newItineraryDays = updateSportDto.itineraries.filter(
+        (itineraryDay) => !existingItineraries.includes(itineraryDay.day),
+      );
+      const newItineraries = newItineraryDays.map((itineraryDay) =>
+        this.itineraryRepository.create({
+          day: itineraryDay.day,
+          description: itineraryDay.description,
+        }),
+      );
+
+      const itinerariesToRemove = sportHoliday.itineraries.filter(
+        (itinerary) =>
+          !updateSportDto.itineraries.some(
+            (updateItinerary) => updateItinerary.day === itinerary.day,
+          ),
+      );
+
+      if (itinerariesToRemove.length > 0) {
+        await this.itineraryRepository.softRemove(itinerariesToRemove);
+      }
+
+      const itinerariesToUpdate = sportHoliday.itineraries.filter(
+        (itinerary) => {
+          const updatedItinerary = updateSportDto.itineraries.find(
+            (updateItinerary) => updateItinerary.day === itinerary.day,
+          );
+          return (
+            updatedItinerary &&
+            updatedItinerary.description !== itinerary.description
+          );
+        },
+      );
+
+      for (const itinerary of itinerariesToUpdate) {
+        const updatedItinerary = updateSportDto.itineraries.find(
+          (updateItinerary) => updateItinerary.day === itinerary.day,
+        );
+        if (updatedItinerary) {
+          itinerary.description = updatedItinerary.description;
+          await this.itineraryRepository.save(itinerary);
+        }
+      }
+
+      if (newItineraries.length > 0) {
+        await this.itineraryRepository.save(newItineraries);
+      }
 
       return await this.sportRepository.findOneOrFail({
         where: { id },

@@ -1,3 +1,4 @@
+import { Image } from '#/image/entities/image.entity';
 import { Sport } from '#/sport/entities/sport.entity';
 import {
   Column,
@@ -5,6 +6,7 @@ import {
   DeleteDateColumn,
   Entity,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -40,4 +42,7 @@ export class SportType {
 
   @OneToMany(() => Sport, (sport) => sport.sportType)
   sports: Sport[];
+
+  @OneToOne(() => Image, (image) => image.sportType)
+  image: Image;
 }

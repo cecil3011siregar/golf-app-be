@@ -1,11 +1,13 @@
 import { Benefit } from '#/benefit/entities/benefit.entity';
 import { Holiday } from '#/holiday/entities/holiday.entity';
+import { SportType } from '#/sport-type/entities/sport-type.entity';
 import { Sport } from '#/sport/entities/sport.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -50,6 +52,10 @@ export class Image {
   holiday: Holiday;
   @Column({ type: 'uuid', nullable: true })
   holidayId: string;
+
+  @OneToOne(() => SportType, (sportType) => sportType.image, { nullable: true })
+  @JoinColumn({ name: 'sport_type_id' })
+  sportType: SportType;
 
   @OneToOne(() => Benefit, (benefit) => benefit.image, { nullable: true })
   benefit: Benefit;
