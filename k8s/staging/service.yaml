@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: nestjs-boilerplate
-  namespace: empatnusabangsa-staging
+  name: golf-app-be-staging
+  namespace: golf-app-be-staging
   labels:
-    run: nestjs-boilerplate
+    run: golf-app-be-staging
 spec:
   ports:
     - port: 5000
       protocol: TCP
   selector:
-    app:  nestjs-boilerplate
+    app: golf-app-be-staging

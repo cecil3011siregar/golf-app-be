@@ -1,24 +1,25 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: nestjs-boilerplate
-  namespace: empatnusabangsa-staging
+  name: golf-app-be-staging
+  namespace: golf-app-be-staging
   annotations:
-    kubernetes.io/ingress.class: "traefik"
+    kubernetes.io/ingress.class: 'traefik'
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.middlewares: golf-app-be-staging-redirect-https@kubernetescrd
 spec:
   rules:
-    - host: "nestjs-boilerplate.k3s.bangun-kreatif.com"
+    - host: 'golf-app-be.k3s.bangun-kreatif.com'
       http:
         paths:
           - pathType: Prefix
             path: /
             backend:
               service:
-                name: nestjs-boilerplate
+                name: golf-app
                 port:
                   number: 5000
   tls:
     - hosts:
-        - "nestjs-boilerplate.k3s.bangun-kreatif.com"
-      secretName: nestjs-boilerplate-k3s-bangun-kreatif-com-tls
+        - 'golf-app-be.k3s.bangun-kreatif.com'
+      secretName: golf-app-be-k3s-bangun-kreatif-com-tls

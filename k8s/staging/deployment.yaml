@@ -1,26 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nestjs-boilerplate
-  namespace: empatnusabangsa-staging
+  name: golf-app-be-staging
+  namespace: golf-app-be-staging
 spec:
   selector:
     matchLabels:
-      app: nestjs-boilerplate
+      app: golf-app-be-staging
   replicas: 1
   template:
     metadata:
       labels:
-        app: nestjs-boilerplate
+        app: golf-app-be-staging
     spec:
       containers:
-        - name: nestjs-boilerplate
-          image: registry-harbor.app.bangun-kreatif.com/empatnusabangsa/nestjs-boilerplate:<VERSION>
+        - name: golf-app-be-staging
+          image: git.empatnusabangsa.com/reynerwl2018/golf-app-be:<VERSION>
           ports:
             - containerPort: 5000
           envFrom:
             - secretRef:
-                name: nestjs-boilerplate-env
+                name: golf-app-be-env
+          # volumeMounts:
+          #   - name: storage
+          #     mountPath: /home/node/uploads
+      # volumes:
+      #   - name: storage
+      #     persistentVolumeClaim:
+      #       claimName: gna-be-pvc
       imagePullSecrets:
         - name: regcred
-
