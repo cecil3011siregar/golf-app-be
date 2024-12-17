@@ -1,3 +1,4 @@
+import { GoogleDriveService } from '#/google-drive/google-drive.service';
 import { Image } from '#/image/entities/image.entity';
 import { Itinerary } from '#/itinerary/entities/itinerary.entity';
 import { SportTypeService } from '#/sport-type/sport-type.service';
@@ -33,6 +34,7 @@ export class SportService {
     @InjectRepository(Itinerary)
     private readonly itineraryRepository: Repository<Itinerary>,
     private readonly sportTypeService: SportTypeService,
+    private readonly googleDriveService: GoogleDriveService,
   ) {}
 
   async create(createSportDto: CreateSportDto) {
@@ -144,7 +146,10 @@ export class SportService {
 
           return {
             ...sport,
-            image: firstImage?.filename || null,
+            image:
+              (
+                await this.googleDriveService.getFiles([firstImage?.filename])
+              )[0] || null,
           };
         }),
       );
@@ -177,14 +182,16 @@ export class SportService {
 
       const { images, ...result } = sportHoliday;
 
-      const imagesName = images.map((image) => image.filename);
+      const imageUrl =
+        (await this.googleDriveService.getFiles(
+          images.map((i) => i.filename),
+        )) || [];
 
-      return { ...result, images: imagesName };
+      return { ...result, images: imageUrl };
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException('Sport holiday not found');
       }
-
       throw error;
     }
   }

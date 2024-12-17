@@ -1,3 +1,4 @@
+import { GoogleDriveService } from '#/google-drive/google-drive.service';
 import { Image } from '#/image/entities/image.entity';
 import {
   ConflictException,
@@ -23,6 +24,7 @@ export class SportTypeService {
     private readonly sportTypeRepository: Repository<SportType>,
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
+    private readonly googleDriveService: GoogleDriveService,
   ) {}
 
   async create(createSportTypeDto: CreateSportTypeDto) {
@@ -68,13 +70,23 @@ export class SportTypeService {
         relations: ['image'],
       });
 
-      const result = data.map((sportType) => {
-        if (sportType.image) {
-          return { ...sportType, image: sportType.image.filename };
-        }
+      const result = Promise.all(
+        data.map(async (sportType) => {
+          if (sportType.image) {
+            return {
+              ...sportType,
+              image:
+                (
+                  await this.googleDriveService.getFiles([
+                    sportType.image.filename,
+                  ])
+                )[0] || null,
+            };
+          }
 
-        return sportType;
-      });
+          return sportType;
+        }),
+      );
 
       return result;
     } catch (error) {

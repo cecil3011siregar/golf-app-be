@@ -20,10 +20,10 @@ export class ImageController {
       throw new BadRequestException('Image is not uploaded');
     }
 
-    const url = await this.googleDriveService.uploadFile(image);
+    await this.googleDriveService.uploadFile(image);
 
     return {
-      filename: url,
+      filename: image.filename,
     };
   }
 }

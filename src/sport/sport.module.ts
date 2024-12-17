@@ -1,3 +1,4 @@
+import { GoogleDriveModule } from '#/google-drive/google-drive.module';
 import { Image } from '#/image/entities/image.entity';
 import { Itinerary } from '#/itinerary/entities/itinerary.entity';
 import { SportTypeModule } from '#/sport-type/sport-type.module';
@@ -11,6 +12,7 @@ import { SportService } from './sport.service';
   imports: [
     TypeOrmModule.forFeature([Sport, Image, Itinerary]),
     SportTypeModule,
+    GoogleDriveModule,
   ],
   controllers: [SportController],
   providers: [SportService],

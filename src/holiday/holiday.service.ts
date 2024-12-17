@@ -1,15 +1,29 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { CreateHolidayDto } from './dto/create-holiday.dto';
-import { UpdateHolidayDto } from './dto/update-holiday.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Holiday } from './entities/holiday.entity';
-import { Between, EntityNotFoundError, FindOptionsWhere, ILike, Not, QueryFailedError, Repository } from 'typeorm';
 import { Benefit } from '#/benefit/entities/benefit.entity';
-import { Place } from '#/place/entities/place.entity';
-import { PaginationDto } from '#/utils/pagination';
-import { HolidayQueryDto, HolidaySort } from './dto/query.dto';
+import { GoogleDriveService } from '#/google-drive/google-drive.service';
 import { Image } from '#/image/entities/image.entity';
 import { Itinerary } from '#/itinerary/entities/itinerary.entity';
+import { Place } from '#/place/entities/place.entity';
+import { PaginationDto } from '#/utils/pagination';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import {
+  Between,
+  EntityNotFoundError,
+  FindOptionsWhere,
+  ILike,
+  Not,
+  QueryFailedError,
+  Repository,
+} from 'typeorm';
+import { CreateHolidayDto } from './dto/create-holiday.dto';
+import { HolidayQueryDto, HolidaySort } from './dto/query.dto';
+import { UpdateHolidayDto } from './dto/update-holiday.dto';
+import { Holiday } from './entities/holiday.entity';
 
 @Injectable()
 export class HolidayService {
@@ -24,6 +38,7 @@ export class HolidayService {
     private readonly imageRepository: Repository<Image>,
     @InjectRepository(Itinerary)
     private readonly itineraryRepository: Repository<Itinerary>,
+    private readonly googleDriveService: GoogleDriveService,
   ) {}
 
   async create(createHolidayDto: CreateHolidayDto) {
@@ -33,14 +48,14 @@ export class HolidayService {
           let benefit = await this.benefitRepository.findOne({
             where: { name: benefitName },
           });
-  
+
           if (!benefit) {
             benefit = this.benefitRepository.create({ name: benefitName });
             await this.benefitRepository.save(benefit);
           }
-  
+
           return benefit;
-        })
+        }),
       );
 
       const holiday = this.holidayRepository.create({
@@ -52,28 +67,28 @@ export class HolidayService {
       });
       await this.holidayRepository.save(holiday);
 
-      const placeVisits = createHolidayDto.places.map((placeName) => 
-        this.placeRepository.create({ 
-          name: placeName, 
-          holidayId: holiday.id 
-        })
+      const placeVisits = createHolidayDto.places.map((placeName) =>
+        this.placeRepository.create({
+          name: placeName,
+          holidayId: holiday.id,
+        }),
       );
       await this.placeRepository.save(placeVisits);
 
-      const images = createHolidayDto.images.map((imageName) => 
-        this.imageRepository.create({ 
-          filename: imageName, 
-          holidayId: holiday.id 
-        })
+      const images = createHolidayDto.images.map((imageName) =>
+        this.imageRepository.create({
+          filename: imageName,
+          holidayId: holiday.id,
+        }),
       );
       await this.imageRepository.save(images);
 
-      const itineraries = createHolidayDto.itineraries.map((itinerary) => 
-        this.itineraryRepository.create({ 
+      const itineraries = createHolidayDto.itineraries.map((itinerary) =>
+        this.itineraryRepository.create({
           day: itinerary.day,
           description: itinerary.description,
-          holidayId: holiday.id 
-        })
+          holidayId: holiday.id,
+        }),
       );
       await this.itineraryRepository.save(itineraries);
 
@@ -129,10 +144,27 @@ export class HolidayService {
         relations: ['benefit', 'image'],
       });
 
+      const result = await Promise.all(
+        data.map(async (holiday) => {
+          const firstImage = await this.imageRepository.findOne({
+            where: { holiday: { id: holiday.id } },
+            order: { createdAt: 'ASC' },
+          });
+
+          return {
+            ...holiday,
+            image:
+              (
+                await this.googleDriveService.getFiles([firstImage?.filename])
+              )[0] || null,
+          };
+        }),
+      );
+
       const totalPages = Math.ceil(totalItems / limit);
 
       return {
-        data,
+        data: result,
         page,
         limit,
         totalPages,
@@ -148,15 +180,22 @@ export class HolidayService {
 
   async findOne(id: string) {
     try {
-      const holiday = await this.holidayRepository.findOneOrFail({
+      const holidayData = await this.holidayRepository.findOneOrFail({
         where: { id },
         relations: ['place', 'benefit', 'image', 'itinerary'],
       });
 
-      const recommendations = await this.holidayRepository.find({
+      const { image: holidayImage, ...holiday } = holidayData;
+
+      const imageUrl =
+        (await this.googleDriveService.getFiles(
+          holidayImage.map((i) => i.filename),
+        )) || [];
+
+      const other = await this.holidayRepository.find({
         where: {
           id: Not(id),
-          price: Between(holiday.price * 0.5, holiday.price * 1.5),
+          price: Between(holidayData.price * 0.5, holidayData.price * 1.5),
         },
         relations: ['benefit', 'image'],
         order: {
@@ -166,10 +205,28 @@ export class HolidayService {
         take: 3,
       });
 
+      const recommendations = await Promise.all(
+        other.map(async (holiday) => {
+          const firstImage = await this.imageRepository.findOne({
+            where: { holiday: { id: holiday.id } },
+            order: { createdAt: 'ASC' },
+          });
+
+          return {
+            ...holiday,
+            image:
+              (
+                await this.googleDriveService.getFiles([firstImage?.filename])
+              )[0] || null,
+          };
+        }),
+      );
+
       return {
         ...holiday,
+        image: imageUrl,
         recommendations,
-      }
+      };
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException();
@@ -190,14 +247,14 @@ export class HolidayService {
           let benefit = await this.benefitRepository.findOne({
             where: { name: benefitName },
           });
-  
+
           if (!benefit) {
             benefit = this.benefitRepository.create({ name: benefitName });
             await this.benefitRepository.save(benefit);
           }
-  
+
           return benefit;
-        })
+        }),
       );
 
       const updatedHoliday = this.holidayRepository.create({
@@ -210,22 +267,22 @@ export class HolidayService {
       });
       await this.holidayRepository.save(updatedHoliday);
 
-      const existingPlaces = holiday.place.map(p => p.name);
-      
+      const existingPlaces = holiday.place.map((p) => p.name);
+
       const newPlaceNames = updateHolidayDto.places.filter(
-        placeName => !existingPlaces.includes(placeName)
+        (placeName) => !existingPlaces.includes(placeName),
       );
-      const newPlaces = newPlaceNames.map(
-        placeName => this.placeRepository.create({ 
-          name: placeName, 
-          holidayId: updatedHoliday.id 
-        })
+      const newPlaces = newPlaceNames.map((placeName) =>
+        this.placeRepository.create({
+          name: placeName,
+          holidayId: updatedHoliday.id,
+        }),
       );
 
       const placesToRemove = holiday.place.filter(
-        place => !updateHolidayDto.places.includes(place.name)
+        (place) => !updateHolidayDto.places.includes(place.name),
       );
-      
+
       if (placesToRemove.length > 0) {
         await this.placeRepository.softRemove(placesToRemove);
       }
@@ -234,22 +291,22 @@ export class HolidayService {
         await this.placeRepository.save(newPlaces);
       }
 
-      const existingImages = holiday.image.map(i => i.filename);
-      
+      const existingImages = holiday.image.map((i) => i.filename);
+
       const newImageNames = updateHolidayDto.images.filter(
-        imageName => !existingImages.includes(imageName)
+        (imageName) => !existingImages.includes(imageName),
       );
-      const newImages = newImageNames.map(
-        imageName => this.imageRepository.create({ 
-          filename: imageName, 
-          holidayId: updatedHoliday.id 
-        })
+      const newImages = newImageNames.map((imageName) =>
+        this.imageRepository.create({
+          filename: imageName,
+          holidayId: updatedHoliday.id,
+        }),
       );
 
       const imagesToRemove = holiday.image.filter(
-        image => !updateHolidayDto.images.includes(image.filename)
+        (image) => !updateHolidayDto.images.includes(image.filename),
       );
-      
+
       if (imagesToRemove.length > 0) {
         await this.imageRepository.softRemove(imagesToRemove);
       }
@@ -258,40 +315,43 @@ export class HolidayService {
         await this.imageRepository.save(newImages);
       }
 
-      const existingItineraries = holiday.itinerary.map(i => i.day);
-      
+      const existingItineraries = holiday.itinerary.map((i) => i.day);
+
       const newItineraryDays = updateHolidayDto.itineraries.filter(
-        itineraryDay => !existingItineraries.includes(itineraryDay.day)
+        (itineraryDay) => !existingItineraries.includes(itineraryDay.day),
       );
-      const newItineraries = newItineraryDays.map(
-        itineraryDay => this.itineraryRepository.create({ 
-          day: itineraryDay.day, 
-          description: itineraryDay.description, 
-          holidayId: updatedHoliday.id 
-        })
+      const newItineraries = newItineraryDays.map((itineraryDay) =>
+        this.itineraryRepository.create({
+          day: itineraryDay.day,
+          description: itineraryDay.description,
+          holidayId: updatedHoliday.id,
+        }),
       );
 
       const itinerariesToRemove = holiday.itinerary.filter(
-        itinerary =>
+        (itinerary) =>
           !updateHolidayDto.itineraries.some(
-            updateItinerary => updateItinerary.day === itinerary.day
-          )
+            (updateItinerary) => updateItinerary.day === itinerary.day,
+          ),
       );
-      
+
       if (itinerariesToRemove.length > 0) {
         await this.itineraryRepository.softRemove(itinerariesToRemove);
       }
 
-      const itinerariesToUpdate = holiday.itinerary.filter(itinerary => {
+      const itinerariesToUpdate = holiday.itinerary.filter((itinerary) => {
         const updatedItinerary = updateHolidayDto.itineraries.find(
-          updateItinerary => updateItinerary.day === itinerary.day
+          (updateItinerary) => updateItinerary.day === itinerary.day,
         );
-        return updatedItinerary && updatedItinerary.description !== itinerary.description;
+        return (
+          updatedItinerary &&
+          updatedItinerary.description !== itinerary.description
+        );
       });
-  
+
       for (const itinerary of itinerariesToUpdate) {
         const updatedItinerary = updateHolidayDto.itineraries.find(
-          updateItinerary => updateItinerary.day === itinerary.day
+          (updateItinerary) => updateItinerary.day === itinerary.day,
         );
         if (updatedItinerary) {
           itinerary.description = updatedItinerary.description;

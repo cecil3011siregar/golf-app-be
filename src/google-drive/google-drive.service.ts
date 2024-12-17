@@ -46,7 +46,27 @@ export class GoogleDriveService {
 
       return `https://drive.google.com/uc?id=${response.data.id}`;
     } catch (error) {
-      console.log(error);
+      throw error;
+    }
+  }
+
+  async getFiles(filenames: string[]) {
+    try {
+      const query = filenames
+        .map((filename) => `name = '${filename}'`)
+        .join(' or ');
+
+      const response = await this.drive.files.list({
+        q: query,
+        spaces: 'drive',
+        fields: 'files(id, name)',
+      });
+
+      return response.data.files.map(
+        (res) => `https://drive.google.com/uc?id=${res.id}`,
+      );
+    } catch (error) {
+      console.error('Error retrieving file IDs:', error);
       throw error;
     }
   }
