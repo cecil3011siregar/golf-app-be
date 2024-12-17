@@ -20,6 +20,8 @@ import { SportModule } from './sport/sport.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { SeederModule } from './seeder/seeder.module';
+import { GoogleDriveService } from './google-drive/google-drive.service';
+import { GoogleDriveModule } from './google-drive/google-drive.module';
 
 @Module({
   imports: [
@@ -116,6 +118,8 @@ import { SeederModule } from './seeder/seeder.module';
     BenefitModule,
     AuthModule,
     SeederModule,
+    GoogleDriveModule,
   ],
+  providers: [GoogleDriveService],
 })
 export class AppModule {}

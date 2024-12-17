@@ -1,3 +1,4 @@
+import { GoogleDriveService } from '#/google-drive/google-drive.service';
 import { uploadImage } from '#/utils/upload';
 import {
   BadRequestException,
@@ -10,15 +11,19 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('images')
 export class ImageController {
+  constructor(private readonly googleDriveService: GoogleDriveService) {}
+
   @Post('upload')
   @UseInterceptors(FileInterceptor('image', uploadImage()))
-  upload(@UploadedFile() image: Express.Multer.File) {
+  async upload(@UploadedFile() image: Express.Multer.File) {
     if (typeof image === 'undefined') {
       throw new BadRequestException('Image is not uploaded');
     }
 
+    const url = await this.googleDriveService.uploadFile(image);
+
     return {
-      filename: image.filename,
+      filename: url,
     };
   }
 }

@@ -18,5 +18,11 @@ export default () => {
       synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
       logging: process.env.DATABASE_LOGGING === 'true',
     },
+    google: {
+      projectId: process.env.GOOGLE_PROJECT_ID,
+      privateKey: process.env.GOOGLE_PRIVATE_KEY,
+      clientEmail: process.env.GOOGLE_CLIENT_EMAIL,
+      folderId: process.env.GOOGLE_FOLDER_ID,
+    },
   };
 };
