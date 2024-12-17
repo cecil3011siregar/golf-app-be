@@ -54,21 +54,6 @@ export class SportController {
     };
   }
 
-  @Public()
-  @Get(':id/recommendations')
-  async getRecommendations(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Query() paginationDto: PaginationDto,
-  ) {
-    const data = await this.sportService.getRecommendations(id, paginationDto);
-
-    return {
-      ...data,
-      statusCode: HttpStatus.OK,
-      message: 'Success get recommendations',
-    };
-  }
-
   @Put(':id')
   async update(
     @Param('id', ParseUUIDPipe) id: string,
