@@ -195,7 +195,7 @@ export class SportService {
           },
           price: Between(sportHoliday.price * 0.5, sportHoliday.price * 1.5),
         },
-        relations: ['sportType', 'images'],
+        relations: ['sportType'],
         order: {
           price: 'ASC',
           duration: 'ASC',
@@ -205,13 +205,12 @@ export class SportService {
 
       const recommendationsData = await Promise.all(
         recommendations.map(async (recommendation) => {
-          const { images, ...recommendationData } = recommendation;
           const firstImage = await this.imageRepository.findOne({
             where: { sport: { id: recommendation.id } },
             order: { createdAt: 'ASC' },
           });
           return {
-            ...recommendationData,
+            ...recommendation,
             image:
               (
                 await this.googleDriveService.getFiles([firstImage?.filename])
