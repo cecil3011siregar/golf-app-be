@@ -52,6 +52,10 @@ export class GoogleDriveService {
 
   async getFiles(filenames: string[]) {
     try {
+      if (filenames.length <= 0) {
+        return [];
+      }
+
       const query = filenames
         .map((filename) => `name = '${filename}'`)
         .join(' or ');
