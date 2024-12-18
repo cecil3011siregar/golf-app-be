@@ -106,6 +106,8 @@ export class DashboardService {
       }),
     );
 
+    const averageHolidayPrices = await this.getPriceRangeAnalytics();
+
     return {
       totalSportHoliday,
       totalHoliday,
@@ -114,6 +116,44 @@ export class DashboardService {
       totalHolidayByBenefit,
       top5SportHoliday,
       top5Holiday,
+      averageHolidayPrices,
     };
+  }
+
+  async getPriceRangeAnalytics(): Promise<{ range: string; value: number }[]> {
+    const priceRanges = [
+      { min: 100_000, max: 1_000_000 },
+      { min: 1_000_000, max: 2_000_000 },
+      { min: 2_000_000, max: 5_000_000 },
+      { min: 5_000_000, max: 10_000_000 },
+      { min: 10_000_000, max: null },
+    ];
+
+    const results = [];
+
+    for (const range of priceRanges) {
+      const holidaysCount = await this.sportHolidayRepository
+        .createQueryBuilder('holiday')
+        .where('holiday.price >= :min', { min: range.min })
+        .andWhere(range.max ? 'holiday.price < :max' : '1=1', {
+          max: range.max,
+        })
+        .getCount();
+
+      const sportHolidaysCount = await this.holidayRepository
+        .createQueryBuilder('sport')
+        .where('sport.price >= :min', { min: range.min })
+        .andWhere(range.max ? 'sport.price < :max' : '1=1', { max: range.max })
+        .getCount();
+
+      results.push({
+        range: range.max
+          ? `${range.min.toLocaleString()} - ${range.max.toLocaleString()}`
+          : `${range.min.toLocaleString()}+`,
+        value: holidaysCount + sportHolidaysCount,
+      });
+    }
+
+    return results;
   }
 }
