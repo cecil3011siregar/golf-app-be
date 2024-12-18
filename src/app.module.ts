@@ -22,6 +22,7 @@ import { AuthModule } from './auth/auth.module';
 import { SeederModule } from './seeder/seeder.module';
 import { GoogleDriveService } from './google-drive/google-drive.service';
 import { GoogleDriveModule } from './google-drive/google-drive.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -119,6 +120,7 @@ import { GoogleDriveModule } from './google-drive/google-drive.module';
     AuthModule,
     SeederModule,
     GoogleDriveModule,
+    DashboardModule,
   ],
   providers: [GoogleDriveService],
 })
