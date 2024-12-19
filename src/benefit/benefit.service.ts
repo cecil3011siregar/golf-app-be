@@ -1,15 +1,15 @@
+import { Image } from '#/image/entities/image.entity';
 import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
 import { CreateBenefitDto } from './dto/create-benefit.dto';
 import { UpdateBenefitDto } from './dto/update-benefit.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Benefit } from './entities/benefit.entity';
-import { EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
-import { Image } from '#/image/entities/image.entity';
 
 @Injectable()
 export class BenefitService {
@@ -85,7 +85,7 @@ export class BenefitService {
       const updatedBenefit = await this.benefitRepository.create({
         ...benefit,
         name: updateBenefitDto.name,
-      })
+      });
       await this.benefitRepository.save(updatedBenefit);
 
       if (updateBenefitDto.image) {
@@ -122,6 +122,28 @@ export class BenefitService {
       });
 
       await this.benefitRepository.softDelete(id);
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException();
+      }
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async toogleStatus(id: string) {
+    try {
+      const benefit = await this.benefitRepository.findOneOrFail({
+        where: { id },
+      });
+
+      await this.benefitRepository.update(id, {
+        ...benefit,
+        status: !benefit.status,
+      });
+
+      return await this.benefitRepository.findOneOrFail({
+        where: { id },
+      });
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException();

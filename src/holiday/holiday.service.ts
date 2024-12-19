@@ -3,6 +3,7 @@ import { GoogleDriveService } from '#/google-drive/google-drive.service';
 import { Image } from '#/image/entities/image.entity';
 import { Itinerary } from '#/itinerary/entities/itinerary.entity';
 import { Place } from '#/place/entities/place.entity';
+import { Status } from '#/sport/dto/query.dto';
 import { PaginationDto } from '#/utils/pagination';
 import {
   BadRequestException,
@@ -14,7 +15,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   Between,
   EntityNotFoundError,
-  FindOptionsWhere,
   ILike,
   Not,
   QueryFailedError,
@@ -109,14 +109,12 @@ export class HolidayService {
   async findAll(paginationDto: PaginationDto, queryDto: HolidayQueryDto) {
     try {
       const { page, limit } = paginationDto;
-      const { sort, search } = queryDto;
+      const { search, sort, status } = queryDto;
       const offset = (page - 1) * limit;
-      const whereClause: FindOptionsWhere<Holiday> = {};
-      if (search) {
-        whereClause.title = ILike(`%${search}%`);
-      }
 
-      const sortClause = {};
+      const searchClause = search ? { title: ILike(`%${search}%`) } : {};
+
+      const sortClause = {} as Record<string, string>;
       if (sort) {
         switch (sort) {
           case HolidaySort.AZ:
@@ -136,8 +134,10 @@ export class HolidayService {
         }
       }
 
+      const statusClause = status ? { status: status === Status.ACTIVE } : {};
+
       const [data, totalItems] = await this.holidayRepository.findAndCount({
-        where: whereClause,
+        where: { ...searchClause, ...statusClause },
         order: sortClause,
         take: limit,
         skip: offset,
@@ -390,5 +390,22 @@ export class HolidayService {
       }
       throw new InternalServerErrorException();
     }
+  }
+
+  async toogleStatus(id: string) {
+    try {
+      const holiday = await this.holidayRepository.findOneOrFail({
+        where: { id },
+      });
+
+      await this.holidayRepository.update(id, {
+        ...holiday,
+        status: !holiday.status,
+      });
+
+      return await this.holidayRepository.findOneOrFail({
+        where: { id },
+      });
+    } catch (error) {}
   }
 }

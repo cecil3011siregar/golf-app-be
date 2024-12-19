@@ -1,3 +1,4 @@
+import { Status } from '#/sport/dto/query.dto';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export enum HolidaySort {
@@ -15,4 +16,8 @@ export class HolidayQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @IsEnum(Status)
+  status?: Status;
 }

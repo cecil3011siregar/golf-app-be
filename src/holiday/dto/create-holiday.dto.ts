@@ -1,11 +1,25 @@
-import { CreateItineraryDto } from "#/itinerary/dto/create-itinerary.dto";
-import { Type } from "class-transformer";
-import { ArrayMinSize, IsArray, IsNotEmpty, IsNumber, IsString, ValidateNested } from "class-validator";
+import { CreateItineraryDto } from '#/itinerary/dto/create-itinerary.dto';
+import { Status } from '#/sport/dto/query.dto';
+import { Type } from 'class-transformer';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
 export class CreateHolidayDto {
   @IsNotEmpty()
   @IsString()
   title: string;
+
+  @IsOptional()
+  @IsEnum(Status)
+  status?: Status;
 
   @IsNotEmpty()
   @IsNumber()

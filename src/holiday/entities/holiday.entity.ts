@@ -1,8 +1,18 @@
-import { Benefit } from "#/benefit/entities/benefit.entity";
-import { Image } from "#/image/entities/image.entity";
-import { Itinerary } from "#/itinerary/entities/itinerary.entity";
-import { Place } from "#/place/entities/place.entity";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Benefit } from '#/benefit/entities/benefit.entity';
+import { Image } from '#/image/entities/image.entity';
+import { Itinerary } from '#/itinerary/entities/itinerary.entity';
+import { Place } from '#/place/entities/place.entity';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Holiday {
@@ -11,7 +21,7 @@ export class Holiday {
 
   @Column({ type: 'varchar', length: 255 })
   title: string;
-  
+
   @Column({ type: 'int' })
   price: number;
 
@@ -26,13 +36,16 @@ export class Holiday {
 
   @ManyToMany(() => Benefit, (benefit) => benefit.holiday)
   @JoinTable({ name: 'holiday_benefit' })
-  benefit: Benefit[]
+  benefit: Benefit[];
 
   @OneToMany(() => Itinerary, (itinenary) => itinenary.holiday)
   itinerary: Itinerary[];
 
   @OneToMany(() => Image, (image) => image.holiday)
   image: Image[];
+
+  @Column({ type: 'boolean', default: true })
+  status: boolean;
 
   @CreateDateColumn({
     name: 'created_at',

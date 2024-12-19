@@ -24,20 +24,6 @@ export class DashboardService {
     private readonly googleDriveService: GoogleDriveService,
   ) {}
   async getDashboard() {
-    /*
-      TODOs:
-      * 1. Total Sport Holiday
-      * 2. Total Holiday
-      * 3. Total sport holiday by sport type
-          - Like in sport type Golf there is 10 sport holiday
-      * 4. Total Holiday by Benefit
-      ! 5. Newest Holiday & Sport Holiday
-      * 6. Top 5 Sport Holiday
-      * 7. Top 5 Holiday
-      * 8. Pie chart holiday & sport holiday
-      9. Line chart harga dan jumlah item
-    */
-
     const totalSportHoliday = await this.sportHolidayRepository.count();
     const totalHoliday = await this.holidayRepository.count();
 
