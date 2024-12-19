@@ -66,6 +66,15 @@ export class SportController {
     };
   }
 
+  @Put(':id/status')
+  async toggleStatus(@Param('id', ParseUUIDPipe) id: string) {
+    return {
+      data: await this.sportService.toggleStatus(id),
+      statusCode: HttpStatus.OK,
+      message: 'Success update sport holiday status',
+    };
+  }
+
   @Delete(':id')
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     await this.sportService.remove(id);

@@ -20,7 +20,7 @@ import {
   Repository,
 } from 'typeorm';
 import { CreateSportDto } from './dto/create-sport.dto';
-import { SportQueryDto, SportSort } from './dto/query.dto';
+import { SportQueryDto, SportSort, Status } from './dto/query.dto';
 import { UpdateSportDto } from './dto/update-sport.dto';
 import { Sport } from './entities/sport.entity';
 
@@ -51,6 +51,7 @@ export class SportService {
       newSportHoliday.city = createSportDto.city;
       newSportHoliday.location = createSportDto.location;
       newSportHoliday.duration = createSportDto.duration;
+      newSportHoliday.status = createSportDto.status;
 
       const insertResult = await this.sportRepository.insert(newSportHoliday);
 
@@ -88,7 +89,7 @@ export class SportService {
   async findAll(paginationDto: PaginationDto, queryDto: SportQueryDto) {
     try {
       const { page, limit } = paginationDto;
-      const { sort, type, search } = queryDto;
+      const { sort, type, search, status } = queryDto;
       const offset = (page - 1) * limit;
       const whereClause: FindOptionsWhere<Sport>[] = [];
       const sortClause: Record<string, 'ASC' | 'DESC'> = {};
@@ -124,6 +125,14 @@ export class SportService {
             break;
           default:
             break;
+        }
+      }
+
+      if (status) {
+        if (status === Status.ACTIVE) {
+          whereClause.push({ status: true });
+        } else if (status === Status.INACTIVE) {
+          whereClause.push({ status: false });
         }
       }
 
@@ -377,6 +386,23 @@ export class SportService {
         throw new NotFoundException('Sport holiday not found');
       }
 
+      throw error;
+    }
+  }
+
+  async toggleStatus(id: string) {
+    try {
+      const sportHoliday = await this.sportRepository.findOneOrFail({
+        where: { id },
+      });
+
+      sportHoliday.status = !sportHoliday.status;
+
+      return await this.sportRepository.save(sportHoliday);
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Sport holiday not found');
+      }
       throw error;
     }
   }

@@ -43,6 +43,12 @@ export class Sport {
   })
   location: string;
 
+  @Column({
+    type: 'boolean',
+    default: true,
+  })
+  status: boolean;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamp with time zone',

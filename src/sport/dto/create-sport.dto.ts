@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsNotEmpty,
   IsUUID,
   Min,
@@ -45,4 +46,9 @@ export class CreateSportDto {
   @ValidateNested({ each: true })
   @Type(() => CreateItineraryDto)
   itineraries: CreateItineraryDto[];
+
+  @IsNotEmpty()
+  @IsBoolean()
+  @Type(() => Boolean)
+  status: boolean;
 }

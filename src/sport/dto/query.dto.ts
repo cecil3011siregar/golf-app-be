@@ -7,6 +7,11 @@ export enum SportSort {
   ZA = 'za',
 }
 
+export enum Status {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
+
 export class SportQueryDto {
   @IsOptional()
   type: string;
@@ -18,4 +23,8 @@ export class SportQueryDto {
   @IsOptional()
   @IsString()
   search: string;
+
+  @IsOptional()
+  @IsEnum(Status)
+  status: Status;
 }
