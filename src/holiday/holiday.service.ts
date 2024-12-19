@@ -406,6 +406,11 @@ export class HolidayService {
       return await this.holidayRepository.findOneOrFail({
         where: { id },
       });
-    } catch (error) {}
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException();
+      }
+      throw new InternalServerErrorException();
+    }
   }
 }
