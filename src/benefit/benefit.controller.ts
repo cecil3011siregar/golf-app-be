@@ -49,15 +49,6 @@ export class BenefitController {
     };
   }
 
-  @Put(':id')
-  async toogleStatus(@Param('id', ParseUUIDPipe) id: string) {
-    return {
-      data: await this.benefitService.toogleStatus(id),
-      statusCode: HttpStatus.OK,
-      message: 'success',
-    };
-  }
-
   @Delete(':id')
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     await this.benefitService.remove(id);

@@ -1,5 +1,4 @@
-import { Status } from '#/sport/dto/query.dto';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateBenefitDto {
   @IsNotEmpty()
@@ -9,8 +8,4 @@ export class CreateBenefitDto {
   @IsOptional()
   @IsString()
   image?: string;
-
-  @IsOptional()
-  @IsEnum(Status)
-  status?: Status;
 }
