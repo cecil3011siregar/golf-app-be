@@ -136,7 +136,8 @@ export class DashboardService {
         range: range.max
           ? `${range.min.toLocaleString()} - ${range.max.toLocaleString()}`
           : `${range.min.toLocaleString()}+`,
-        value: holidaysCount + sportHolidaysCount,
+        holiday: holidaysCount,
+        sportHoliday: sportHolidaysCount,
       });
     }
 
