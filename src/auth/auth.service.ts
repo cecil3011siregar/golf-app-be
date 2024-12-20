@@ -1,15 +1,19 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
-import { LoginDto } from './dto/login.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '#/users/entities/user.entity';
-import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User) 
+    @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
   ) {}
@@ -21,24 +25,30 @@ export class AuthService {
       });
 
       if (!user) {
-        throw new UnauthorizedException('Incorrect email or password provided');
+        throw new UnauthorizedException(
+          'Incorrect username or password provided',
+        );
       }
 
-      const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+      const isPasswordValid = await bcrypt.compare(
+        loginDto.password,
+        user.password,
+      );
 
       if (!isPasswordValid) {
-        throw new UnauthorizedException('Incorrect email or password provided');
+        throw new UnauthorizedException(
+          'Incorrect username or password provided',
+        );
       }
 
       const payload = {
         name: user.username,
       };
 
-      return { 
+      return {
         accessToken: this.jwtService.sign(payload),
-        username: user.username
+        username: user.username,
       };
-
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;
