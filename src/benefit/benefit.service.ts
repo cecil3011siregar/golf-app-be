@@ -52,11 +52,20 @@ export class BenefitService {
   }
 
   async findAll() {
-    return await this.benefitRepository.find({
+    const benefits = await this.benefitRepository.find({
+      relations: {
+        holiday: true,
+        image: true,
+      },
       order: {
         updatedAt: 'DESC',
       },
     });
+
+    return benefits.map((benefit) => ({
+      ...benefit,
+      totalHolidays: benefit.holiday.length,
+    }));
   }
 
   async findOne(id: string) {
