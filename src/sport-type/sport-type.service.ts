@@ -66,12 +66,14 @@ export class SportTypeService {
 
   async findAll() {
     try {
-      const data = await this.sportTypeRepository.find({
-        relations: ['image'],
-      });
+      const sportTypes = await this.sportTypeRepository
+        .createQueryBuilder('sportType')
+        .leftJoinAndSelect('sportType.image', 'image')
+        .loadRelationCountAndMap('sportType.totalHolidays', 'sportType.sports')
+        .getMany();
 
-      const result = Promise.all(
-        data.map(async (sportType) => {
+      const result = await Promise.all(
+        sportTypes.map(async (sportType) => {
           if (sportType.image) {
             return {
               ...sportType,
