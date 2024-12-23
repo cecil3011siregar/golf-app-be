@@ -52,20 +52,21 @@ export class BenefitService {
   }
 
   async findAll() {
-    const benefits = await this.benefitRepository.find({
-      relations: {
-        holiday: true,
-        image: true,
-      },
-      order: {
-        updatedAt: 'DESC',
-      },
-    });
+    try {
+      const benefits = await this.benefitRepository.find({
+        relations: ['holiday'],
+        order: {
+          updatedAt: 'DESC',
+        },
+      });
 
-    return benefits.map((benefit) => ({
-      ...benefit,
-      totalHolidays: benefit.holiday.length,
-    }));
+      return benefits.map(({ holiday, ...benefit }) => ({
+        ...benefit,
+        totalHolidays: holiday.length,
+      }));
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async findOne(id: string) {
