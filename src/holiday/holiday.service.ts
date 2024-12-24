@@ -78,7 +78,7 @@ export class HolidayService {
       const images = createHolidayDto.images.map((imageName) =>
         this.imageRepository.create({
           filename: imageName,
-          holidayId: holiday.id,
+          holiday: holiday,
         }),
       );
       await this.imageRepository.save(images);
@@ -299,7 +299,7 @@ export class HolidayService {
       const newImages = newImageNames.map((imageName) =>
         this.imageRepository.create({
           filename: imageName,
-          holidayId: updatedHoliday.id,
+          holiday: updatedHoliday,
         }),
       );
 

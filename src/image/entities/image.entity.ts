@@ -49,16 +49,15 @@ export class Image {
   sport: Sport;
 
   @ManyToOne(() => Holiday, (holiday) => holiday.image, { nullable: true })
-  holiday: Holiday;
   @JoinColumn({ name: 'holiday_id' })
-  holidayId: string;
+  holiday: Holiday;
+  // holidayId: string;
 
   @OneToOne(() => SportType, (sportType) => sportType.image, { nullable: true })
   @JoinColumn({ name: 'sport_type_id' })
   sportType: SportType;
 
   @OneToOne(() => Benefit, (benefit) => benefit.image, { nullable: true })
-  benefit: Benefit;
   @JoinColumn({ name: 'benefit_id' })
-  benefitId: string;
+  benefit: Benefit;
 }
