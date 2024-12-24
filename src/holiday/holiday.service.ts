@@ -192,22 +192,31 @@ export class HolidayService {
     try {
       const holidayData = await this.holidayRepository.findOneOrFail({
         where: { id },
-        relations: ['place', 'benefit', 'image', 'itinerary'],
+        relations: ['place', 'benefit.image', 'image', 'itinerary'],
       });
 
-      const { image: holidayImage, ...holiday } = holidayData;
+      const { image: holidayImage, benefit, ...holiday } = holidayData;
 
       const imageUrl =
         (await this.googleDriveService.getFiles(
           holidayImage.map((i) => i.filename),
         )) || [];
 
+      const formattedBenefits = await Promise.all(
+        benefit.map(async ({ image, ...benefit }) => ({
+          ...benefit,
+          image: image
+            ? (await this.googleDriveService.getFiles([image.filename]))[0]
+            : null,
+        })),
+      );
+
       const other = await this.holidayRepository.find({
         where: {
           id: Not(id),
           price: Between(holidayData.price * 0.5, holidayData.price * 1.5),
         },
-        relations: ['benefit', 'image'],
+        relations: ['benefit.image', 'image'],
         order: {
           price: 'ASC',
           duration: 'ASC',
@@ -216,14 +225,24 @@ export class HolidayService {
       });
 
       const recommendations = await Promise.all(
-        other.map(async (holiday) => {
+        other.map(async ({ benefit, ...holiday }) => {
           const firstImage = await this.imageRepository.findOne({
             where: { holiday: { id: holiday.id } },
             order: { createdAt: 'ASC' },
           });
 
+          const formattedBenefits = await Promise.all(
+            benefit.map(async ({ image, ...benefit }) => ({
+              ...benefit,
+              image: image
+                ? (await this.googleDriveService.getFiles([image.filename]))[0]
+                : null,
+            })),
+          );
+
           return {
             ...holiday,
+            benefits: formattedBenefits,
             image:
               (
                 await this.googleDriveService.getFiles([firstImage?.filename])
@@ -234,6 +253,7 @@ export class HolidayService {
 
       return {
         ...holiday,
+        benefits: formattedBenefits,
         image: imageUrl,
         recommendations,
       };
