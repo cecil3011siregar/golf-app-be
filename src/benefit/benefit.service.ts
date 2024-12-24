@@ -1,3 +1,4 @@
+import { GoogleDriveService } from '#/google-drive/google-drive.service';
 import { Image } from '#/image/entities/image.entity';
 import {
   BadRequestException,
@@ -18,6 +19,7 @@ export class BenefitService {
     private readonly benefitRepository: Repository<Benefit>,
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
+    private readonly googleDriveService: GoogleDriveService,
   ) {}
 
   async create(createBenefitDto: CreateBenefitDto) {
@@ -54,16 +56,23 @@ export class BenefitService {
   async findAll() {
     try {
       const benefits = await this.benefitRepository.find({
-        relations: ['holiday'],
+        relations: ['holiday', 'image'],
         order: {
           updatedAt: 'DESC',
         },
       });
 
-      return benefits.map(({ holiday, ...benefit }) => ({
-        ...benefit,
-        totalHolidays: holiday.length,
-      }));
+      const formattedBenefits = await Promise.all(
+        benefits.map(async ({ holiday, image, ...benefit }) => ({
+          ...benefit,
+          totalHolidays: holiday.length,
+          image: image
+            ? (await this.googleDriveService.getFiles([image.filename]))[0]
+            : null,
+        })),
+      );
+
+      return formattedBenefits;
     } catch (error) {
       throw new InternalServerErrorException();
     }
