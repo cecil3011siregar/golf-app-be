@@ -141,18 +141,28 @@ export class HolidayService {
         order: sortClause,
         take: limit,
         skip: offset,
-        relations: ['benefit', 'image'],
+        relations: ['benefit.image', 'image'],
       });
 
       const result = await Promise.all(
-        data.map(async (holiday) => {
+        data.map(async ({ image, benefit, ...holiday }) => {
           const firstImage = await this.imageRepository.findOne({
             where: { holiday: { id: holiday.id } },
             order: { createdAt: 'ASC' },
           });
 
+          const formattedBenefits = await Promise.all(
+            benefit.map(async ({ image, ...benefit }) => ({
+              ...benefit,
+              image: image
+                ? (await this.googleDriveService.getFiles([image.filename]))[0]
+                : null,
+            })),
+          );
+
           return {
             ...holiday,
+            benefits: formattedBenefits,
             image:
               (
                 await this.googleDriveService.getFiles([firstImage?.filename])
