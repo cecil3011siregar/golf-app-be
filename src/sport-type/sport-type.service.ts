@@ -29,7 +29,7 @@ export class SportTypeService {
 
   async create(createSportTypeDto: CreateSportTypeDto) {
     try {
-      const { name } = createSportTypeDto;
+      const { name, status } = createSportTypeDto;
 
       // Find sport type by name
       const sportType = await this.sportTypeRepository.findOne({
@@ -44,6 +44,7 @@ export class SportTypeService {
       // Create new sport type
       const newSportType = new SportType();
       newSportType.name = name;
+      newSportType.status = status;
 
       const insertResult = await this.sportTypeRepository.insert(newSportType);
 
@@ -167,6 +168,23 @@ export class SportTypeService {
         );
       }
 
+      throw error;
+    }
+  }
+
+  async toggleStatus(id: string) {
+    try {
+      const sportType = await this.sportTypeRepository.findOneOrFail({
+        where: { id },
+      });
+
+      sportType.status = !sportType.status;
+
+      return await this.sportTypeRepository.save(sportType);
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Sport holiday not found');
+      }
       throw error;
     }
   }

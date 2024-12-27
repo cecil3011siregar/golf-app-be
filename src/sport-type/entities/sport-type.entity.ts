@@ -19,6 +19,9 @@ export class SportType {
   @Column({ type: 'varchar', length: 60 })
   name: string;
 
+  @Column({ type: 'boolean', default: true })
+  status: boolean;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamp with time zone',

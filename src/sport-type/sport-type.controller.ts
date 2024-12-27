@@ -1,3 +1,4 @@
+import { Public } from '#/auth/decorators/public.decorators';
 import {
   Body,
   Controller,
@@ -12,7 +13,6 @@ import {
 import { CreateSportTypeDto } from './dto/create-sport-type.dto';
 import { UpdateSportTypeDto } from './dto/update-sport-type.dto';
 import { SportTypeService } from './sport-type.service';
-import { Public } from '#/auth/decorators/public.decorators';
 
 @Controller('sport-types')
 export class SportTypeController {
@@ -56,6 +56,15 @@ export class SportTypeController {
       data: await this.sportTypeService.update(id, updateSportTypeDto),
       message: 'Success update sport type',
       statusCode: HttpStatus.OK,
+    };
+  }
+
+  @Put(':id/status')
+  async toggleStatus(@Param('id', ParseUUIDPipe) id: string) {
+    return {
+      data: await this.sportTypeService.toggleStatus(id),
+      statusCode: HttpStatus.OK,
+      message: 'Success update sport type status',
     };
   }
 

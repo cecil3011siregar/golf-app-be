@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsBoolean, IsNotEmpty } from 'class-validator';
 
 export class CreateSportTypeDto {
   @IsNotEmpty()
@@ -6,4 +6,8 @@ export class CreateSportTypeDto {
 
   @IsNotEmpty()
   image: string;
+
+  @IsNotEmpty()
+  @IsBoolean()
+  status: boolean;
 }
