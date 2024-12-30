@@ -1,12 +1,15 @@
 import { GoogleDriveService } from '#/google-drive/google-drive.service';
 import { Image } from '#/image/entities/image.entity';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Cache } from 'cache-manager';
 import { EntityNotFoundError, QueryFailedError, Repository } from 'typeorm';
 import { CreateBenefitDto } from './dto/create-benefit.dto';
 import { UpdateBenefitDto } from './dto/update-benefit.dto';
@@ -19,6 +22,8 @@ export class BenefitService {
     private readonly benefitRepository: Repository<Benefit>,
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
     private readonly googleDriveService: GoogleDriveService,
   ) {}
 
@@ -36,6 +41,8 @@ export class BenefitService {
         });
         await this.imageRepository.save(image);
       }
+
+      await this.cacheManager.reset();
 
       return await this.benefitRepository.findOneOrFail({
         where: {
@@ -55,6 +62,13 @@ export class BenefitService {
 
   async findAll() {
     try {
+      const cacheKey = 'benefitsAll';
+      const cachedData = await this.cacheManager.get(cacheKey);
+
+      if (cachedData) {
+        return cachedData;
+      }
+
       const benefits = await this.benefitRepository.find({
         relations: ['holiday', 'image'],
         order: {
@@ -71,6 +85,8 @@ export class BenefitService {
             : null,
         })),
       );
+
+      await this.cacheManager.set(cacheKey, formattedBenefits);
 
       return formattedBenefits;
     } catch (error) {
@@ -120,6 +136,8 @@ export class BenefitService {
         }
       }
 
+      await this.cacheManager.reset();
+
       return await this.benefitRepository.findOneOrFail({
         where: { id },
       });
@@ -143,6 +161,8 @@ export class BenefitService {
       benefit.status = !benefit.status;
       await this.benefitRepository.save(benefit);
 
+      await this.cacheManager.reset();
+
       return await this.benefitRepository.findOneOrFail({
         where: { id },
       });
@@ -159,6 +179,8 @@ export class BenefitService {
       await this.benefitRepository.findOneOrFail({
         where: { id },
       });
+
+      await this.cacheManager.reset();
 
       await this.benefitRepository.softDelete(id);
     } catch (error) {

@@ -5,13 +5,16 @@ import { Itinerary } from '#/itinerary/entities/itinerary.entity';
 import { Place } from '#/place/entities/place.entity';
 import { Status } from '#/sport/dto/query.dto';
 import { PaginationDto } from '#/utils/pagination';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Cache } from 'cache-manager';
 import {
   Between,
   EntityNotFoundError,
@@ -38,6 +41,8 @@ export class HolidayService {
     private readonly imageRepository: Repository<Image>,
     @InjectRepository(Itinerary)
     private readonly itineraryRepository: Repository<Itinerary>,
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
     private readonly googleDriveService: GoogleDriveService,
   ) {}
 
@@ -92,6 +97,8 @@ export class HolidayService {
       );
       await this.itineraryRepository.save(itineraries);
 
+      await this.cacheManager.reset();
+
       return await this.holidayRepository.findOneOrFail({
         where: { id: holiday.id },
       });
@@ -107,6 +114,31 @@ export class HolidayService {
   }
 
   async findAll(paginationDto: PaginationDto, queryDto: HolidayQueryDto) {
+    try {
+      const cacheKey = `holidays:${JSON.stringify(queryDto)}:${JSON.stringify(
+        paginationDto,
+      )}`;
+
+      const cachedData = await this.cacheManager.get(cacheKey);
+
+      if (cachedData) {
+        return cachedData as any;
+      }
+
+      const result = await this.getHolidaysFromDB(paginationDto, queryDto);
+
+      await this.cacheManager.set(cacheKey, result);
+
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getHolidaysFromDB(
+    paginationDto: PaginationDto,
+    queryDto: HolidayQueryDto,
+  ) {
     try {
       const { page, limit } = paginationDto;
       const { search, sort, status } = queryDto;
@@ -393,6 +425,8 @@ export class HolidayService {
         await this.itineraryRepository.save(newItineraries);
       }
 
+      await this.cacheManager.reset();
+
       return await this.holidayRepository.findOneOrFail({
         where: { id },
       });
@@ -413,6 +447,8 @@ export class HolidayService {
         where: { id },
       });
 
+      await this.cacheManager.reset();
+
       await this.holidayRepository.softDelete(id);
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
@@ -432,6 +468,8 @@ export class HolidayService {
         ...holiday,
         status: !holiday.status,
       });
+
+      await this.cacheManager.reset();
 
       return await this.holidayRepository.findOneOrFail({
         where: { id },
