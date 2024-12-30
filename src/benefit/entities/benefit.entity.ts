@@ -22,6 +22,9 @@ export class Benefit {
   @OneToOne(() => Image, (image) => image.benefit)
   image: Image;
 
+  @Column({ type: 'boolean', default: true })
+  status: boolean;
+
   @ManyToMany(() => Holiday, (Holiday) => Holiday.benefit)
   holiday: Holiday[];
 

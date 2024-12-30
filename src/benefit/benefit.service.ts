@@ -134,6 +134,26 @@ export class BenefitService {
     }
   }
 
+  async toogleStatus(id: string) {
+    try {
+      const benefit = await this.benefitRepository.findOneOrFail({
+        where: { id },
+      });
+
+      benefit.status = !benefit.status;
+      await this.benefitRepository.save(benefit);
+
+      return await this.benefitRepository.findOneOrFail({
+        where: { id },
+      });
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException();
+      }
+      throw new InternalServerErrorException();
+    }
+  }
+
   async remove(id: string) {
     try {
       await this.benefitRepository.findOneOrFail({

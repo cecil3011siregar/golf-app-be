@@ -1,10 +1,9 @@
 import { CreateItineraryDto } from '#/itinerary/dto/create-itinerary.dto';
-import { Status } from '#/sport/dto/query.dto';
 import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
-  IsEnum,
+  IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -18,8 +17,9 @@ export class CreateHolidayDto {
   title: string;
 
   @IsOptional()
-  @IsEnum(Status)
-  status?: Status;
+  @IsBoolean()
+  @Type(() => Boolean)
+  status: boolean;
 
   @IsNotEmpty()
   @IsNumber()
