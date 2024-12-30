@@ -1,4 +1,5 @@
 import { CoreModule } from '#/core/core.module';
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -8,21 +9,21 @@ import { LoggerModule } from 'nestjs-pino';
 import { join } from 'path';
 import * as pino from 'pino';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { AuthModule } from './auth/auth.module';
 import { BenefitModule } from './benefit/benefit.module';
 import configuration from './config/configuration';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { GoogleDriveModule } from './google-drive/google-drive.module';
+import { GoogleDriveService } from './google-drive/google-drive.service';
 import { HealthModule } from './health/health.module';
 import { HolidayModule } from './holiday/holiday.module';
 import { ImageModule } from './image/image.module';
 import { ItineraryModule } from './itinerary/itinerary.module';
 import { PlaceModule } from './place/place.module';
+import { SeederModule } from './seeder/seeder.module';
 import { SportTypeModule } from './sport-type/sport-type.module';
 import { SportModule } from './sport/sport.module';
 import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
-import { SeederModule } from './seeder/seeder.module';
-import { GoogleDriveService } from './google-drive/google-drive.service';
-import { GoogleDriveModule } from './google-drive/google-drive.module';
-import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -106,6 +107,11 @@ import { DashboardModule } from './dashboard/dashboard.module';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads/images'),
       serveRoot: '/images',
+    }),
+    CacheModule.register({
+      ttl: 1000 * 60 * 60,
+      max: 100,
+      isGlobal: true,
     }),
     CoreModule,
     UsersModule,

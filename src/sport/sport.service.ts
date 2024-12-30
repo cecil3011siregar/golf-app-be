@@ -3,12 +3,15 @@ import { Image } from '#/image/entities/image.entity';
 import { Itinerary } from '#/itinerary/entities/itinerary.entity';
 import { SportTypeService } from '#/sport-type/sport-type.service';
 import { PaginationDto } from '#/utils/pagination';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Cache } from 'cache-manager';
 import * as fs from 'fs/promises';
 import {
   Between,
@@ -33,6 +36,8 @@ export class SportService {
     private readonly imageRepository: Repository<Image>,
     @InjectRepository(Itinerary)
     private readonly itineraryRepository: Repository<Itinerary>,
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
     private readonly sportTypeService: SportTypeService,
     private readonly googleDriveService: GoogleDriveService,
   ) {}
@@ -70,6 +75,8 @@ export class SportService {
         await this.itineraryRepository.insert(newItinerary);
       });
 
+      await this.cacheManager.reset();
+
       return await this.sportRepository.findOneOrFail({
         where: { id: insertResult.identifiers[0].id },
       });
@@ -87,6 +94,31 @@ export class SportService {
   }
 
   async findAll(paginationDto: PaginationDto, queryDto: SportQueryDto) {
+    try {
+      const cacheKey = `sports:${JSON.stringify(queryDto)}:${JSON.stringify(
+        paginationDto,
+      )}`;
+
+      const cachedData = await this.cacheManager.get(cacheKey);
+
+      if (cachedData) {
+        return cachedData as any;
+      }
+
+      const result = await this.getSportHolidaysFromDB(paginationDto, queryDto);
+
+      await this.cacheManager.set(cacheKey, result);
+
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getSportHolidaysFromDB(
+    paginationDto: PaginationDto,
+    queryDto: SportQueryDto,
+  ) {
     try {
       const { page, limit } = paginationDto;
       const { sort, type, search, status } = queryDto;
@@ -337,6 +369,8 @@ export class SportService {
         await this.itineraryRepository.save(newItineraries);
       }
 
+      await this.cacheManager.reset();
+
       return await this.sportRepository.findOneOrFail({
         where: { id },
       });
@@ -376,6 +410,8 @@ export class SportService {
         });
       }
 
+      await this.cacheManager.reset();
+
       await this.sportRepository.softDelete(id);
     } catch (error) {
       if (error instanceof QueryFailedError) {
@@ -397,6 +433,8 @@ export class SportService {
       });
 
       sportHoliday.status = !sportHoliday.status;
+
+      await this.cacheManager.reset();
 
       return await this.sportRepository.save(sportHoliday);
     } catch (error) {

@@ -1,12 +1,15 @@
 import { GoogleDriveService } from '#/google-drive/google-drive.service';
 import { Image } from '#/image/entities/image.entity';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   ConflictException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Cache } from 'cache-manager';
 import {
   EntityNotFoundError,
   Not,
@@ -24,6 +27,8 @@ export class SportTypeService {
     private readonly sportTypeRepository: Repository<SportType>,
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
     private readonly googleDriveService: GoogleDriveService,
   ) {}
 
@@ -53,6 +58,8 @@ export class SportTypeService {
       newImage.sportType = newSportType;
       await this.imageRepository.insert(newImage);
 
+      await this.cacheManager.reset();
+
       return await this.sportTypeRepository.findOneOrFail({
         where: { id: insertResult.identifiers[0].id },
       });
@@ -67,6 +74,13 @@ export class SportTypeService {
 
   async findAll() {
     try {
+      const cacheKey = 'sportTypesAll';
+      const cachedData = await this.cacheManager.get(cacheKey);
+
+      if (cachedData) {
+        return cachedData;
+      }
+
       const sportTypes = await this.sportTypeRepository
         .createQueryBuilder('sportType')
         .leftJoinAndSelect('sportType.image', 'image')
@@ -90,6 +104,8 @@ export class SportTypeService {
           return sportType;
         }),
       );
+
+      await this.cacheManager.set(cacheKey, result);
 
       return result;
     } catch (error) {
@@ -144,6 +160,8 @@ export class SportTypeService {
         }
       }
 
+      await this.cacheManager.reset();
+
       return await this.findOne(id);
     } catch (error) {
       if (error instanceof QueryFailedError) {
@@ -159,6 +177,8 @@ export class SportTypeService {
   async remove(id: string) {
     try {
       await this.findOne(id);
+
+      await this.cacheManager.reset();
 
       await this.sportTypeRepository.softDelete(id);
     } catch (error) {
@@ -179,6 +199,8 @@ export class SportTypeService {
       });
 
       sportType.status = !sportType.status;
+
+      await this.cacheManager.reset();
 
       return await this.sportTypeRepository.save(sportType);
     } catch (error) {
