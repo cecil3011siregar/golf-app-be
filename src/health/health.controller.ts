@@ -1,3 +1,4 @@
+import { Public } from '#/auth/decorators/public.decorators';
 import { Controller, Get } from '@nestjs/common';
 import {
   HealthCheck,
@@ -13,6 +14,7 @@ export class HealthController {
   ) {}
 
   @Get()
+  @Public()
   @HealthCheck()
   check() {
     return this.health.check([
