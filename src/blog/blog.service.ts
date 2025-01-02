@@ -40,6 +40,8 @@ export class BlogService {
     try {
       const blog = this.blogRepository.create({
         title: createBlogDto.title,
+        content: createBlogDto.content,
+        status: createBlogDto?.status,
       });
       await this.blogRepository.save(blog);
 
