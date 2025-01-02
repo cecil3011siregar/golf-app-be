@@ -26,6 +26,7 @@ import { SeederModule } from './seeder/seeder.module';
 import { SportTypeModule } from './sport-type/sport-type.module';
 import { SportModule } from './sport/sport.module';
 import { UsersModule } from './users/users.module';
+import { ContactModule } from './contact/contact.module';
 
 @Module({
   imports: [
@@ -146,6 +147,7 @@ import { UsersModule } from './users/users.module';
     SeederModule,
     GoogleDriveModule,
     DashboardModule,
+    ContactModule,
   ],
   providers: [
     GoogleDriveService,

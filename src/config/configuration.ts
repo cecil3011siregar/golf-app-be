@@ -24,5 +24,8 @@ export default () => {
       clientEmail: process.env.GOOGLE_CLIENT_EMAIL,
       folderId: process.env.GOOGLE_FOLDER_ID,
     },
+    brevo: {
+      apiKey: process.env.BREVO_API_KEY,
+    },
   };
 };
