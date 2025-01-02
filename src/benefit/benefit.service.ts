@@ -121,18 +121,17 @@ export class BenefitService {
 
       if (updateBenefitDto.image) {
         const image = await this.imageRepository.findOne({
-          where: { benefit: updatedBenefit },
+          where: { benefit: { id } },
         });
 
         if (image) {
           image.filename = updateBenefitDto.image;
-          await this.imageRepository.save(image);
+          await this.imageRepository.update(image.id, image);
         } else {
-          const image = this.imageRepository.create({
-            filename: updateBenefitDto.image,
-            benefit: updatedBenefit,
-          });
-          await this.imageRepository.save(image);
+          const newImage = new Image();
+          newImage.filename = updateBenefitDto.image;
+          newImage.benefit = benefit;
+          await this.imageRepository.insert(newImage);
         }
       }
 

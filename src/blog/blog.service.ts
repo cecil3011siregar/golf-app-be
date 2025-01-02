@@ -225,24 +225,23 @@ export class BlogService {
         ...blog,
         title: updateBlogDto.title,
         content: updateBlogDto.content,
-        status: updateBlogDto.status,
+        status: updateBlogDto?.status,
       });
       await this.blogRepository.save(updatedBlog);
 
       if (updateBlogDto.image) {
         const image = await this.imageRepository.findOne({
-          where: { blog: updatedBlog },
+          where: { blog: { id } },
         });
 
         if (image) {
           image.filename = updateBlogDto.image;
-          await this.imageRepository.save(image);
+          await this.imageRepository.update(image.id, image);
         } else {
-          const image = this.imageRepository.create({
-            filename: updateBlogDto.image,
-            blog: updatedBlog,
-          });
-          await this.imageRepository.save(image);
+          const newImage = new Image();
+          newImage.filename = updateBlogDto.image;
+          newImage.blog = blog;
+          await this.imageRepository.insert(newImage);
         }
       }
 
