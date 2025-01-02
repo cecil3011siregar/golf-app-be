@@ -1,4 +1,5 @@
 import { Benefit } from '#/benefit/entities/benefit.entity';
+import { Blog } from '#/blog/entities/blog.entity';
 import { Holiday } from '#/holiday/entities/holiday.entity';
 import { SportType } from '#/sport-type/entities/sport-type.entity';
 import { Sport } from '#/sport/entities/sport.entity';
@@ -51,7 +52,6 @@ export class Image {
   @ManyToOne(() => Holiday, (holiday) => holiday.image, { nullable: true })
   @JoinColumn({ name: 'holiday_id' })
   holiday: Holiday;
-  // holidayId: string;
 
   @OneToOne(() => SportType, (sportType) => sportType.image, { nullable: true })
   @JoinColumn({ name: 'sport_type_id' })
@@ -60,4 +60,8 @@ export class Image {
   @OneToOne(() => Benefit, (benefit) => benefit.image, { nullable: true })
   @JoinColumn({ name: 'benefit_id' })
   benefit: Benefit;
+
+  @OneToOne(() => Blog, (blog) => blog.image, { nullable: true })
+  @JoinColumn({ name: 'blog_id' })
+  blog: Blog;
 }
