@@ -6,15 +6,15 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: golf-app-be-staging
+      app: golf-app-be
   replicas: 1
   template:
     metadata:
       labels:
-        app: golf-app-be-staging
+        app: golf-app-be
     spec:
       containers:
-        - name: golf-app-be-staging
+        - name: golf-app-be
           image: git.empatnusabangsa.com/empatnusabangsa/golf-app-be:36
           ports:
             - containerPort: 5000
