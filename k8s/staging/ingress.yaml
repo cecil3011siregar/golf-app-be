@@ -1,22 +1,22 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: golf-app-be-staging
+  name: golf-app-be-ingress
   namespace: golf-app-staging
   annotations:
     kubernetes.io/ingress.class: 'traefik'
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    traefik.ingress.kubernetes.io/router.middlewares: golf-app-be-staging-redirect-https@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: golf-app-staging-redirect-https@kubernetescrd
 spec:
   rules:
     - host: 'golf-app-be.k3s.bangun-kreatif.com'
       http:
         paths:
-          - pathType: Prefix
-            path: /
+          - path: /
+            pathType: Prefix
             backend:
               service:
-                name: golf-app-be-staging-service
+                name: golf-app-be
                 port:
                   number: 5000
   tls:
