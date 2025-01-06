@@ -28,6 +28,7 @@ import { SportModule } from './sport/sport.module';
 import { UsersModule } from './users/users.module';
 import { ContactModule } from './contact/contact.module';
 import { BlogModule } from './blog/blog.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -150,6 +151,7 @@ import { BlogModule } from './blog/blog.module';
     DashboardModule,
     ContactModule,
     BlogModule,
+    CategoryModule,
   ],
   providers: [
     GoogleDriveService,

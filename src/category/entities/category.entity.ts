@@ -1,37 +1,27 @@
-import { Category } from '#/category/entities/category.entity';
-import { Image } from '#/image/entities/image.entity';
+import { Blog } from '#/blog/entities/blog.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  JoinTable,
   ManyToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
-export class Blog {
+export class Category {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  title: string;
+  @Column({ type: 'varchar', length: 60 })
+  name: string;
 
-  @Column({ type: 'text' })
-  content: string;
+  @ManyToMany(() => Blog, (blog) => blog.category)
+  blog: Blog[];
 
   @Column({ type: 'boolean', default: true })
   status: boolean;
-
-  @OneToOne(() => Image, (image) => image.blog)
-  image: Image;
-
-  @ManyToMany(() => Category, (category) => category.blog)
-  @JoinTable({ name: 'blog_category' })
-  category: Category[];
 
   @CreateDateColumn({
     name: 'created_at',
