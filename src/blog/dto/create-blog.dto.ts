@@ -1,5 +1,12 @@
 import { Type } from 'class-transformer';
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateBlogDto {
   @IsNotEmpty()
@@ -13,6 +20,12 @@ export class CreateBlogDto {
   @IsNotEmpty()
   @IsString()
   image: string;
+
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  categories: string[];
 
   @IsOptional()
   @IsBoolean()

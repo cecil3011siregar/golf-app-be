@@ -1,3 +1,4 @@
+import { Category } from '#/category/entities/category.entity';
 import { GoogleDriveService } from '#/google-drive/google-drive.service';
 import { Image } from '#/image/entities/image.entity';
 import { Status } from '#/sport/dto/query.dto';
@@ -31,6 +32,8 @@ export class BlogService {
     private readonly blogRepository: Repository<Blog>,
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
     @Inject(CACHE_MANAGER)
     private readonly cacheManager: Cache,
     private readonly googleDriveService: GoogleDriveService,
@@ -38,9 +41,25 @@ export class BlogService {
 
   async create(createBlogDto: CreateBlogDto) {
     try {
+      const categories = await Promise.all(
+        createBlogDto.categories.map(async (categoryName) => {
+          let category = await this.categoryRepository.findOne({
+            where: { name: categoryName },
+          });
+
+          if (!category) {
+            category = this.categoryRepository.create({ name: categoryName });
+            await this.categoryRepository.save(category);
+          }
+
+          return category;
+        }),
+      );
+
       const blog = this.blogRepository.create({
         title: createBlogDto.title,
         content: createBlogDto.content,
+        category: categories,
         status: createBlogDto?.status,
       });
       await this.blogRepository.save(blog);
@@ -128,7 +147,7 @@ export class BlogService {
         order: sortClause,
         take: limit,
         skip: offset,
-        relations: ['image'],
+        relations: ['image', 'category'],
       });
 
       const result = await Promise.all(
@@ -169,14 +188,14 @@ export class BlogService {
     try {
       const blog = await this.blogRepository.findOneOrFail({
         where: { id },
-        relations: ['image'],
+        relations: ['image', 'category'],
       });
 
       const other = await this.blogRepository.find({
         where: {
           id: Not(id),
         },
-        relations: ['image'],
+        relations: ['image', 'category'],
         order: {
           createdAt: 'ASC',
         },
@@ -219,13 +238,30 @@ export class BlogService {
     try {
       const blog = await this.blogRepository.findOneOrFail({
         where: { id },
+        relations: ['image', 'category'],
       });
+
+      const categories = await Promise.all(
+        updateBlogDto.categories.map(async (categoryName) => {
+          let category = await this.categoryRepository.findOne({
+            where: { name: categoryName },
+          });
+
+          if (!category) {
+            category = this.categoryRepository.create({ name: categoryName });
+            await this.categoryRepository.save(category);
+          }
+
+          return category;
+        }),
+      );
 
       const updatedBlog = this.blogRepository.create({
         ...blog,
         title: updateBlogDto.title,
         content: updateBlogDto.content,
         status: updateBlogDto?.status,
+        category: categories,
       });
       await this.blogRepository.save(updatedBlog);
 

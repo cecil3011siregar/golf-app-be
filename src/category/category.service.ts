@@ -48,9 +48,9 @@ export class CategoryService {
       });
 
       const formattedCategories = await Promise.all(
-        categories.map(async (category) => ({
+        categories.map(async ({ blog, ...category }) => ({
           ...category,
-          totalBlogs: category.blog.length,
+          totalBlogs: blog.length,
         })),
       );
 
