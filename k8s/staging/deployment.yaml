@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: golf-app-be-staging
-  namespace: golf-app-be-staging
+  namespace: golf-app-staging
 spec:
   selector:
     matchLabels:
@@ -15,12 +15,12 @@ spec:
     spec:
       containers:
         - name: golf-app-be-staging
-          image: git.empatnusabangsa.com/reynerwl2018/golf-app-be:<VERSION>
+          image: git.empatnusabangsa.com/empatnusabangsa/golf-app-be:36
           ports:
             - containerPort: 5000
           envFrom:
             - secretRef:
-                name: golf-app-be-env
+                name: golf-app-be-secret
           # volumeMounts:
           #   - name: storage
           #     mountPath: /home/node/uploads

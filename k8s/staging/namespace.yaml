@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: golf-app-be-staging
+  name: golf-app-staging

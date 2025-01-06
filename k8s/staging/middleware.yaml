@@ -2,7 +2,7 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
   name: redirect-https
-  namespace: golf-app-be-staging
+  namespace: golf-app-staging
 spec:
   redirectScheme:
     scheme: https

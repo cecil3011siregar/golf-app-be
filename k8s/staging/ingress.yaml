@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: golf-app-be-staging
-  namespace: golf-app-be-staging
+  namespace: golf-app-staging
   annotations:
     kubernetes.io/ingress.class: 'traefik'
     cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -16,7 +16,7 @@ spec:
             path: /
             backend:
               service:
-                name: golf-app
+                name: golf-app-be-staging-service
                 port:
                   number: 5000
   tls:

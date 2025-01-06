@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: golf-app-be-staging
-  namespace: golf-app-be-staging
+  name: golf-app-be-staging-service
+  namespace: golf-app-staging
   labels:
     run: golf-app-be-staging
 spec:
