@@ -21,7 +21,7 @@ export class CreateBlogDto {
   @IsString()
   image: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
   @IsString({ each: true })
