@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: golf-app-be-staging-service
+  name: golf-app-be
   namespace: golf-app-staging
   labels:
-    run: golf-app-be-staging
+    run: golf-app-be
 spec:
   ports:
     - port: 5000
       protocol: TCP
   selector:
-    app: golf-app-be-staging
+    app: golf-app-be
