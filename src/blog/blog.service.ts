@@ -211,19 +211,26 @@ export class BlogService {
 
           return {
             ...blog,
-            image:
-              (
-                await this.googleDriveService.getFiles([blogImage?.filename])
-              )[0] || null,
+            image: {
+              filename: blogImage.filename,
+              url:
+                (
+                  await this.googleDriveService.getFiles([blogImage?.filename])
+                )[0] || null,
+            },
           };
         }),
       );
 
       return {
         ...blog,
-        image:
-          (await this.googleDriveService.getFiles([blog.image?.filename]))[0] ||
-          null,
+        image: {
+          filename: blog.image.filename,
+          url:
+            (
+              await this.googleDriveService.getFiles([blog.image.filename])
+            )[0] || null,
+        },
         recommendations,
       };
     } catch (error) {
