@@ -187,10 +187,10 @@ export class SportService {
 
           return {
             ...sport,
-            image:
-              (
-                await this.googleDriveService.getFiles([firstImage?.filename])
-              )[0] || null,
+            images:
+              (await this.googleDriveService.getFiles([
+                firstImage?.filename,
+              ])) || null,
           };
         }),
       );
@@ -252,10 +252,10 @@ export class SportService {
           });
           return {
             ...recommendation,
-            image:
-              (
-                await this.googleDriveService.getFiles([firstImage?.filename])
-              )[0] || null,
+            images:
+              (await this.googleDriveService.getFiles([
+                firstImage?.filename,
+              ])) || null,
           };
         }),
       );
