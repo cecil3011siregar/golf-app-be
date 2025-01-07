@@ -187,10 +187,9 @@ export class SportService {
 
           return {
             ...sport,
-            images:
-              (await this.googleDriveService.getFiles([
-                firstImage?.filename,
-              ])) || null,
+            images: [
+              await this.googleDriveService.getFile(firstImage?.filename),
+            ],
           };
         }),
       );
@@ -223,11 +222,6 @@ export class SportService {
 
       const { images, ...result } = sportHoliday;
 
-      const imageUrl =
-        (await this.googleDriveService.getFiles(
-          images.map((i) => i.filename),
-        )) || [];
-
       const recommendations = await this.sportRepository.find({
         where: {
           id: Not(id),
@@ -252,17 +246,18 @@ export class SportService {
           });
           return {
             ...recommendation,
-            images:
-              (await this.googleDriveService.getFiles([
-                firstImage?.filename,
-              ])) || null,
+            images: await this.googleDriveService.getFiles([
+              firstImage?.filename,
+            ]),
           };
         }),
       );
 
       return {
         ...result,
-        images: imageUrl,
+        images: await this.googleDriveService.getFiles(
+          images.map((i) => i.filename),
+        ),
         recommendations: recommendationsData,
       };
     } catch (error) {

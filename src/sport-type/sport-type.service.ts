@@ -92,12 +92,9 @@ export class SportTypeService {
           if (sportType.image) {
             return {
               ...sportType,
-              image:
-                (
-                  await this.googleDriveService.getFiles([
-                    sportType.image.filename,
-                  ])
-                )[0] || null,
+              image: await this.googleDriveService.getFile(
+                sportType.image.filename,
+              ),
             };
           }
 

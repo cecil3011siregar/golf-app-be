@@ -67,10 +67,7 @@ export class DashboardService {
 
         return {
           ...sportHoliday,
-          image:
-            (
-              await this.googleDriveService.getFiles([firstImage?.filename])
-            )[0] || null,
+          images: [await this.googleDriveService.getFile(firstImage?.filename)],
         };
       }),
     );
@@ -84,10 +81,7 @@ export class DashboardService {
 
         return {
           ...holiday,
-          image:
-            (
-              await this.googleDriveService.getFiles([firstImage?.filename])
-            )[0] || null,
+          images: [await this.googleDriveService.getFile(firstImage?.filename)],
         };
       }),
     );

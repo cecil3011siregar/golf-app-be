@@ -186,9 +186,7 @@ export class HolidayService {
           const formattedBenefits = await Promise.all(
             benefit.map(async ({ image, ...benefit }) => ({
               ...benefit,
-              images: image
-                ? (await this.googleDriveService.getFiles([image.filename]))[0]
-                : null,
+              image: await this.googleDriveService.getFile(image.filename),
             })),
           );
 
@@ -196,9 +194,7 @@ export class HolidayService {
             ...holiday,
             benefits: formattedBenefits,
             images: [
-              (
-                await this.googleDriveService.getFiles([firstImage?.filename])
-              )[0] || null,
+              await this.googleDriveService.getFile(firstImage?.filename),
             ],
           };
         }),
@@ -234,17 +230,10 @@ export class HolidayService {
         ...holiday
       } = holidayData;
 
-      const imageUrl =
-        (await this.googleDriveService.getFiles(
-          holidayImage.map((i) => i.filename),
-        )) || [];
-
       const formattedBenefits = await Promise.all(
         benefit.map(async ({ image, ...benefit }) => ({
           ...benefit,
-          images: image
-            ? (await this.googleDriveService.getFiles([image.filename]))[0]
-            : null,
+          image: await this.googleDriveService.getFile(image.filename),
         })),
       );
 
@@ -271,19 +260,16 @@ export class HolidayService {
           const formattedBenefits = await Promise.all(
             benefit.map(async ({ image, ...benefit }) => ({
               ...benefit,
-              images: image
-                ? (await this.googleDriveService.getFiles([image.filename]))[0]
-                : null,
+              image: await this.googleDriveService.getFile(image.filename),
             })),
           );
 
           return {
             ...holiday,
             benefits: formattedBenefits,
-            images:
-              (
-                await this.googleDriveService.getFiles([firstImage?.filename])
-              )[0] || null,
+            images: await this.googleDriveService.getFiles([
+              firstImage?.filename,
+            ]),
           };
         }),
       );
@@ -291,7 +277,9 @@ export class HolidayService {
       return {
         ...holiday,
         benefits: formattedBenefits,
-        images: imageUrl,
+        images: await this.googleDriveService.getFiles(
+          holidayImage.map((i) => i.filename),
+        ),
         recommendations,
       };
     } catch (error) {

@@ -50,9 +50,35 @@ export class GoogleDriveService {
     }
   }
 
+  async getFile(filename: string) {
+    try {
+      if (!filename) {
+        return {
+          filename: null,
+          url: null,
+        };
+      }
+
+      const response = await this.drive.files.list({
+        q: `name = '${filename}'`,
+        spaces: 'drive',
+        fields: 'files(id, name)',
+      });
+
+      const file = response.data.files[0];
+      return {
+        filename: file ? file.name : null,
+        url: file ? `https://drive.google.com/uc?id=${file.id}` : null,
+      };
+    } catch (error) {
+      console.error('Error retrieving file IDs:', error);
+      throw error;
+    }
+  }
+
   async getFiles(filenames: string[]) {
     try {
-      if (filenames.length <= 0) {
+      if (filenames.length < 1) {
         return [];
       }
 
@@ -66,9 +92,14 @@ export class GoogleDriveService {
         fields: 'files(id, name)',
       });
 
-      return response.data.files.map(
-        (res) => `https://drive.google.com/uc?id=${res.id}`,
-      );
+      const file = response.data.files;
+
+      return file
+        ? file.map((file) => ({
+            filename: file.name,
+            url: `https://drive.google.com/uc?id=${file.id}`,
+          }))
+        : [];
     } catch (error) {
       console.error('Error retrieving file IDs:', error);
       throw error;

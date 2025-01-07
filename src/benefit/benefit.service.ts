@@ -80,9 +80,7 @@ export class BenefitService {
         benefits.map(async ({ holiday, image, ...benefit }) => ({
           ...benefit,
           totalHolidays: holiday.length,
-          image: image
-            ? (await this.googleDriveService.getFiles([image.filename]))[0]
-            : null,
+          image: await this.googleDriveService.getFile(image?.filename),
         })),
       );
 

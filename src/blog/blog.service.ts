@@ -130,15 +130,17 @@ export class BlogService {
             sortClause['title'] = 'DESC';
             break;
           case BlogSort.NEWEST:
-            sortClause['createdAt'] = 'ASC';
+            sortClause['createdAt'] = 'DESC';
             break;
           case BlogSort.OLDEST:
-            sortClause['createdAt'] = 'DESC';
+            sortClause['createdAt'] = 'ASC';
             break;
           default:
             break;
         }
       }
+
+      await this.cacheManager.reset();
 
       const statusClause = status ? { status: status === Status.ACTIVE } : {};
 
@@ -159,10 +161,7 @@ export class BlogService {
 
           return {
             ...blog,
-            image:
-              (
-                await this.googleDriveService.getFiles([firstImage?.filename])
-              )[0] || null,
+            image: await this.googleDriveService.getFile(firstImage?.filename),
           };
         }),
       );
@@ -204,33 +203,16 @@ export class BlogService {
 
       const recommendations = await Promise.all(
         other.map(async (blog) => {
-          const blogImage = await this.imageRepository.findOne({
-            where: { blog: { id: blog.id } },
-            order: { createdAt: 'ASC' },
-          });
-
           return {
             ...blog,
-            image: {
-              filename: blogImage.filename,
-              url:
-                (
-                  await this.googleDriveService.getFiles([blogImage?.filename])
-                )[0] || null,
-            },
+            image: await this.googleDriveService.getFile(blog.image?.filename),
           };
         }),
       );
 
       return {
         ...blog,
-        image: {
-          filename: blog.image.filename,
-          url:
-            (
-              await this.googleDriveService.getFiles([blog.image.filename])
-            )[0] || null,
-        },
+        image: await this.googleDriveService.getFile(blog.image?.filename),
         recommendations,
       };
     } catch (error) {
