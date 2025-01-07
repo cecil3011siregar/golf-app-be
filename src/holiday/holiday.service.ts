@@ -195,10 +195,11 @@ export class HolidayService {
           return {
             ...holiday,
             benefits: formattedBenefits,
-            images:
+            images: [
               (
                 await this.googleDriveService.getFiles([firstImage?.filename])
               )[0] || null,
+            ],
           };
         }),
       );
