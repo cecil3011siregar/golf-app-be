@@ -49,7 +49,9 @@ export class Itinerary {
   @ManyToOne(() => Sport, (sport) => sport.itineraries, { nullable: true })
   sport: Sport;
 
-  @ManyToOne(() => Holiday, (holiday) => holiday.itinerary, { nullable: true })
+  @ManyToOne(() => Holiday, (holiday) => holiday.itineraries, {
+    nullable: true,
+  })
   holiday: Holiday;
   @Column({ type: 'uuid', nullable: true })
   holidayId: string;

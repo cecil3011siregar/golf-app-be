@@ -49,7 +49,7 @@ export class Image {
   @ManyToOne(() => Sport, (sport) => sport.images, { nullable: true })
   sport: Sport;
 
-  @ManyToOne(() => Holiday, (holiday) => holiday.image, { nullable: true })
+  @ManyToOne(() => Holiday, (holiday) => holiday.images, { nullable: true })
   @JoinColumn({ name: 'holiday_id' })
   holiday: Holiday;
 

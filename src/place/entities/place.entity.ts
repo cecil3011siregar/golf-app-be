@@ -1,5 +1,13 @@
-import { Holiday } from "#/holiday/entities/holiday.entity";
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Holiday } from '#/holiday/entities/holiday.entity';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Place {
@@ -9,7 +17,7 @@ export class Place {
   @Column({ type: 'varchar', length: 60 })
   name: string;
 
-  @ManyToOne(() => Holiday, (holiday) => holiday.place)
+  @ManyToOne(() => Holiday, (holiday) => holiday.places)
   holiday: Holiday;
   @Column({ type: 'uuid' })
   holidayId: string;

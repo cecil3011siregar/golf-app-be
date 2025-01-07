@@ -32,17 +32,17 @@ export class Holiday {
   duration: string;
 
   @OneToMany(() => Place, (place) => place.holiday)
-  place: Place[];
+  places: Place[];
 
   @ManyToMany(() => Benefit, (benefit) => benefit.holiday)
   @JoinTable({ name: 'holiday_benefit' })
-  benefit: Benefit[];
+  benefits: Benefit[];
 
   @OneToMany(() => Itinerary, (itinenary) => itinenary.holiday)
-  itinerary: Itinerary[];
+  itineraries: Itinerary[];
 
   @OneToMany(() => Image, (image) => image.holiday)
-  image: Image[];
+  images: Image[];
 
   @Column({ type: 'boolean', default: true })
   status: boolean;

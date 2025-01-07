@@ -25,7 +25,7 @@ export class Benefit {
   @Column({ type: 'boolean', default: true })
   status: boolean;
 
-  @ManyToMany(() => Holiday, (Holiday) => Holiday.benefit)
+  @ManyToMany(() => Holiday, (Holiday) => Holiday.benefits)
   holiday: Holiday[];
 
   @CreateDateColumn({

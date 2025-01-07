@@ -68,7 +68,7 @@ export class HolidayService {
         price: createHolidayDto.price,
         description: createHolidayDto.description,
         duration: createHolidayDto.duration,
-        benefit: benefits,
+        benefits: benefits,
       });
       await this.holidayRepository.save(holiday);
 
@@ -173,11 +173,11 @@ export class HolidayService {
         order: sortClause,
         take: limit,
         skip: offset,
-        relations: ['benefit.image', 'image'],
+        relations: ['benefits.image', 'images'],
       });
 
       const result = await Promise.all(
-        data.map(async ({ image, benefit, ...holiday }) => {
+        data.map(async ({ images: image, benefits: benefit, ...holiday }) => {
           const firstImage = await this.imageRepository.findOne({
             where: { holiday: { id: holiday.id } },
             order: { createdAt: 'ASC' },
@@ -186,7 +186,7 @@ export class HolidayService {
           const formattedBenefits = await Promise.all(
             benefit.map(async ({ image, ...benefit }) => ({
               ...benefit,
-              image: image
+              images: image
                 ? (await this.googleDriveService.getFiles([image.filename]))[0]
                 : null,
             })),
@@ -195,7 +195,7 @@ export class HolidayService {
           return {
             ...holiday,
             benefits: formattedBenefits,
-            image:
+            images:
               (
                 await this.googleDriveService.getFiles([firstImage?.filename])
               )[0] || null,
@@ -224,10 +224,14 @@ export class HolidayService {
     try {
       const holidayData = await this.holidayRepository.findOneOrFail({
         where: { id },
-        relations: ['place', 'benefit.image', 'image', 'itinerary'],
+        relations: ['places', 'benefits.image', 'images', 'itineraries'],
       });
 
-      const { image: holidayImage, benefit, ...holiday } = holidayData;
+      const {
+        images: holidayImage,
+        benefits: benefit,
+        ...holiday
+      } = holidayData;
 
       const imageUrl =
         (await this.googleDriveService.getFiles(
@@ -237,7 +241,7 @@ export class HolidayService {
       const formattedBenefits = await Promise.all(
         benefit.map(async ({ image, ...benefit }) => ({
           ...benefit,
-          image: image
+          images: image
             ? (await this.googleDriveService.getFiles([image.filename]))[0]
             : null,
         })),
@@ -248,7 +252,7 @@ export class HolidayService {
           id: Not(id),
           price: Between(holidayData.price * 0.5, holidayData.price * 1.5),
         },
-        relations: ['benefit.image', 'image'],
+        relations: ['benefits.image', 'images'],
         order: {
           price: 'ASC',
           duration: 'ASC',
@@ -257,7 +261,7 @@ export class HolidayService {
       });
 
       const recommendations = await Promise.all(
-        other.map(async ({ benefit, ...holiday }) => {
+        other.map(async ({ benefits: benefit, ...holiday }) => {
           const firstImage = await this.imageRepository.findOne({
             where: { holiday: { id: holiday.id } },
             order: { createdAt: 'ASC' },
@@ -266,7 +270,7 @@ export class HolidayService {
           const formattedBenefits = await Promise.all(
             benefit.map(async ({ image, ...benefit }) => ({
               ...benefit,
-              image: image
+              images: image
                 ? (await this.googleDriveService.getFiles([image.filename]))[0]
                 : null,
             })),
@@ -275,7 +279,7 @@ export class HolidayService {
           return {
             ...holiday,
             benefits: formattedBenefits,
-            image:
+            images:
               (
                 await this.googleDriveService.getFiles([firstImage?.filename])
               )[0] || null,
@@ -286,7 +290,7 @@ export class HolidayService {
       return {
         ...holiday,
         benefits: formattedBenefits,
-        image: imageUrl,
+        images: imageUrl,
         recommendations,
       };
     } catch (error) {
@@ -301,7 +305,7 @@ export class HolidayService {
     try {
       const holiday = await this.holidayRepository.findOneOrFail({
         where: { id },
-        relations: ['place', 'benefit', 'image', 'itinerary'],
+        relations: ['places', 'benefits', 'images', 'itineraries'],
       });
 
       const benefits = await Promise.all(
@@ -325,11 +329,11 @@ export class HolidayService {
         price: updateHolidayDto.price,
         description: updateHolidayDto.description,
         duration: updateHolidayDto.duration,
-        benefit: benefits,
+        benefits: benefits,
       });
       await this.holidayRepository.save(updatedHoliday);
 
-      const existingPlaces = holiday.place.map((p) => p.name);
+      const existingPlaces = holiday.places.map((p) => p.name);
 
       const newPlaceNames = updateHolidayDto.places.filter(
         (placeName) => !existingPlaces.includes(placeName),
@@ -341,7 +345,7 @@ export class HolidayService {
         }),
       );
 
-      const placesToRemove = holiday.place.filter(
+      const placesToRemove = holiday.places.filter(
         (place) => !updateHolidayDto.places.includes(place.name),
       );
 
@@ -353,7 +357,7 @@ export class HolidayService {
         await this.placeRepository.save(newPlaces);
       }
 
-      const existingImages = holiday.image.map((i) => i.filename);
+      const existingImages = holiday.images.map((i) => i.filename);
 
       const newImageNames = updateHolidayDto.images.filter(
         (imageName) => !existingImages.includes(imageName),
@@ -365,7 +369,7 @@ export class HolidayService {
         }),
       );
 
-      const imagesToRemove = holiday.image.filter(
+      const imagesToRemove = holiday.images.filter(
         (image) => !updateHolidayDto.images.includes(image.filename),
       );
 
@@ -377,7 +381,7 @@ export class HolidayService {
         await this.imageRepository.save(newImages);
       }
 
-      const existingItineraries = holiday.itinerary.map((i) => i.day);
+      const existingItineraries = holiday.itineraries.map((i) => i.day);
 
       const newItineraryDays = updateHolidayDto.itineraries.filter(
         (itineraryDay) => !existingItineraries.includes(itineraryDay.day),
@@ -390,7 +394,7 @@ export class HolidayService {
         }),
       );
 
-      const itinerariesToRemove = holiday.itinerary.filter(
+      const itinerariesToRemove = holiday.itineraries.filter(
         (itinerary) =>
           !updateHolidayDto.itineraries.some(
             (updateItinerary) => updateItinerary.day === itinerary.day,
@@ -401,7 +405,7 @@ export class HolidayService {
         await this.itineraryRepository.softRemove(itinerariesToRemove);
       }
 
-      const itinerariesToUpdate = holiday.itinerary.filter((itinerary) => {
+      const itinerariesToUpdate = holiday.itineraries.filter((itinerary) => {
         const updatedItinerary = updateHolidayDto.itineraries.find(
           (updateItinerary) => updateItinerary.day === itinerary.day,
         );
